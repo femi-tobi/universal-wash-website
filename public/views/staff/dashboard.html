@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Laundry Management</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>🧺 Laundry Manager</h1>
+        <div class="user-info">
+            <span id="staffName"></span>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="hidden"></div>
+
+        <!-- Daily Stats -->
+        <div class="grid grid-3 mb-3">
+            <div class="stat-card">
+                <h3>Today's Sales</h3>
+                <div class="value" id="todaySales">0</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <h3>Total Revenue</h3>
+                <div class="value" id="todayRevenue">$0.00</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h3>Unpaid Amount</h3>
+                <div class="value" id="todayUnpaid">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2 class="mb-2">Quick Actions</h2>
+            <div class="grid grid-2">
+                <a href="new-sale.html">
+                    <button class="btn btn-primary btn-block" style="min-height: 80px; font-size: 20px;">
+                        ➕ Create New Sale
+                    </button>
+                </a>
+                <a href="daily-report.html">
+                    <button class="btn btn-success btn-block" style="min-height: 80px; font-size: 20px;">
+                        📊 View Daily Report
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Check authentication
+        checkAuth();
+
+        // Display user name
+        const user = getCurrentUser();
+        document.getElementById('staffName').textContent = `Welcome, ${user.full_name}`;
+
+        // Load daily stats
+        async function loadDailyStats() {
+            try {
+                const response = await fetch('/api/sales/daily', {
+                    headers: getAuthHeaders()
+                });
+
+                const data = await response.json();
+
+                document.getElementById('todaySales').textContent = data.total_sales || 0;
+                document.getElementById('todayRevenue').textContent = '$' + (data.total_revenue || 0).toFixed(2);
+                document.getElementById('todayUnpaid').textContent = '$' + (data.unpaid_amount || 0).toFixed(2);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        loadDailyStats();
+    </script>
+</body>
+
+</html>

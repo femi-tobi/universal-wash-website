@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer History - Admin</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>📋 Customer History</h1>
+        <div class="user-info">
+            <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="hidden"></div>
+
+        <div class="card">
+            <h2 class="mb-2">All Customers</h2>
+            <input type="text" id="searchCustomer" placeholder="🔍 Search by name or phone..."
+                style="margin-bottom: 20px;">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>First Visit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customersBody">
+                    <tr>
+                        <td colspan="4" class="text-center">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Customer Details Modal -->
+        <div id="customerModal" class="hidden">
+            <div class="card">
+                <h2 class="mb-2">Customer Details</h2>
+                <button class="btn btn-secondary" onclick="closeCustomerModal()">Close</button>
+                <div id="customerDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        checkAuth();
+
+        const user = getCurrentUser();
+        if (user.role !== 'admin') {
+            alert('Access denied');
+            window.location.href = '/';
+        }
+
+        let allCustomers = [];
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                const response = await fetch('/api/customers', {
+                    headers: getAuthHeaders()
+                });
+                allCustomers = await response.json();
+                displayCustomers(allCustomers);
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        // Display customers
+        function displayCustomers(customers) {
+            const tbody = document.getElementById('customersBody');
+
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No customers found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = customers.map(customer => `
+                <tr>
+                    <td><strong>${customer.name}</strong></td>
+                    <td>${customer.phone}</td>
+                    <td>${new Date(customer.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary" style="min-height: auto; padding: 8px 16px; font-size: 14px;" onclick="viewCustomerHistory(${customer.id})">
+                            📖 View History
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Search customers
+        document.getElementById('searchCustomer').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allCustomers.filter(c =>
+                c.name.toLowerCase().includes(query) ||
+                c.phone.includes(query)
+            );
+            displayCustomers(filtered);
+        });
+
+        // View customer history
+        async function viewCustomerHistory(customerId) {
+            try {
+                const response = await fetch(`/api/customers/${customerId}/history`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+
+                const detailsHtml = `
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>${data.customer.name}</h3>
+                        <p><strong>Phone:</strong> ${data.customer.phone}</p>
+                        <p><strong>Total Orders:</strong> ${data.summary.total_orders}</p>
+                        <p><strong>Total Spent:</strong> $${parseFloat(data.summary.total_spent).toFixed(2)}</p>
+                        <p><strong>Outstanding:</strong> $${parseFloat(data.summary.outstanding_amount).toFixed(2)}</p>
+                    </div>
+                    
+                    <h3>Order History</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Staff</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.orders.map(order => `
+                                <tr>
+                                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                    <td>$${parseFloat(order.total_amount).toFixed(2)}</td>
+                                    <td><span class="badge badge-${order.payment_status}">${order.payment_status}</span></td>
+                                    <td>${order.staff_name}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('customerDetails').innerHTML = detailsHtml;
+                document.getElementById('customerModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading customer history:', error);
+                showAlert('Failed to load customer history', 'error');
+            }
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').classList.add('hidden');
+        }
+
+        loadCustomers();
+    </script>
+</body>
+
+</html>

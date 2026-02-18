@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Report - Laundry Management</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>📊 Daily Sales Report</h1>
+        <div class="user-info">
+            <a href="dashboard.html"><button class="btn btn-secondary">← Back</button></a>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Summary -->
+        <div class="grid grid-3 mb-3">
+            <div class="stat-card">
+                <h3>Total Sales</h3>
+                <div class="value" id="totalSales">0</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <h3>Paid Amount</h3>
+                <div class="value" id="paidAmount">$0.00</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h3>Unpaid Amount</h3>
+                <div class="value" id="unpaidAmount">$0.00</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="text-center">Today: <span id="todayDate"></span></h2>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        checkAuth();
+
+        // Display today's date
+        const today = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('todayDate').textContent = today;
+
+        // Load daily stats
+        async function loadDailyReport() {
+            try {
+                const response = await fetch('/api/sales/daily', {
+                    headers: getAuthHeaders()
+                });
+
+                const data = await response.json();
+
+                document.getElementById('totalSales').textContent = data.total_sales || 0;
+                document.getElementById('paidAmount').textContent = '$' + (data.paid_amount || 0).toFixed(2);
+                document.getElementById('unpaidAmount').textContent = '$' + (data.unpaid_amount || 0).toFixed(2);
+            } catch (error) {
+                console.error('Error loading report:', error);
+            }
+        }
+
+        loadDailyReport();
+    </script>
+</body>
+
+</html>

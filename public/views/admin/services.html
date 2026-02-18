@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Services - Admin</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>⚙️ Manage Services</h1>
+        <div class="user-info">
+            <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="hidden"></div>
+
+        <!-- Add New Service -->
+        <div class="card">
+            <h2 class="mb-2">Add New Service</h2>
+            <form id="addServiceForm">
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label>Service Name *</label>
+                        <input type="text" id="serviceName" required placeholder="e.g., Wash">
+                    </div>
+                    <div class="form-group">
+                        <label>Base Price ($) *</label>
+                        <input type="number" id="servicePrice" step="0.01" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="serviceDesc" placeholder="Optional description">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">➕ Add Service</button>
+            </form>
+        </div>
+
+        <!-- Services List -->
+        <div class="card">
+            <h2 class="mb-2">All Services</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Description</th>
+                        <th>Base Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="servicesBody">
+                    <tr>
+                        <td colspan="5" class="text-center">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin/services.js"></script>
+</body>
+
+</html>

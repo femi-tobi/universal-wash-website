@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - Universal Wash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .receipt-wrapper {
+            background: white;
+            width: 380px;
+            padding: 24px 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ── Header ── */
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .receipt-header .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+
+        .receipt-header .logo-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #1a73e8;
+            color: white;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+        }
+
+        .receipt-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .receipt-header p {
+            font-size: 12px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        /* ── Sections ── */
+        .section {
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        /* ── Two-column info rows ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+        }
+
+        .info-item label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 1px;
+        }
+
+        .info-item span {
+            font-size: 12px;
+            color: #111;
+        }
+
+        .info-item .badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .badge.unpaid {
+            background: #fff3e0;
+            color: #e65100;
+            border-color: #ffcc80;
+        }
+
+        /* ── Items table ── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .items-table th {
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            color: #555;
+            padding: 4px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .items-table th:last-child,
+        .items-table td:last-child {
+            text-align: right;
+        }
+
+        .items-table td {
+            padding: 6px 0;
+            color: #111;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .items-table .item-name {
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        .items-table .item-service {
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* ── Payment summary ── */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 3px 0;
+            color: #333;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 13px;
+            color: #111;
+            border-top: 1px solid #ccc;
+            margin-top: 4px;
+            padding-top: 6px;
+        }
+
+        .summary-row.balance {
+            font-weight: 700;
+            font-size: 13px;
+            color: #1a73e8;
+        }
+
+        /* ── Footer ── */
+        .receipt-footer {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #ccc;
+        }
+
+        /* ── Print button (hidden on print) ── */
+        .print-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .btn-print {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .receipt-wrapper {
+                box-shadow: none;
+                width: 100%;
+            }
+
+            .print-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="receipt-wrapper" id="receipt">
+
+            <!-- Header -->
+            <div class="receipt-header">
+                <img src="/logo2.jpeg" alt="Universal Wash Logo" class="logo">
+                <h2 id="bizName">Universal Wash</h2>
+                <p id="bizPhone">07035640392</p>
+                <p id="bizAddress">No. 6 Solomon Durodola St, Unity Estate,<br>Car wash, Egbeda, Lagos State</p>
+            </div>
+
+            <!-- Order Info -->
+            <div class="section">
+                <div class="section-title">Order Information</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Order Date</label>
+                        <span id="orderDate">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Slip No</label>
+                        <span id="slipNo">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Status</label>
+                        <span id="statusBadge"><span class="badge">ACCEPTED</span></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Payment Type</label>
+                        <span id="paymentType">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Collection Date</label>
+                        <span id="collectionDate">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Order Type</label>
+                        <span>IN-STORE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="section">
+                <div class="section-title">Customer Details</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Name</label>
+                        <span id="custName">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Phone</label>
+                        <span id="custPhone">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Attendant</label>
+                        <span id="attendant">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Address</label>
+                        <span>—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="section">
+                <div class="section-title">Order Details</div>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Service</th>
+                            <th>Qty</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;color:#999;padding:12px 0;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="section">
+                <div class="section-title">Payment Summary</div>
+                <div class="summary-row">
+                    <span>Total Quantity</span>
+                    <span id="totalQty">0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Sub Total</span>
+                    <span id="subTotal">NGN 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Discount</span>
+                    <span>NGN 0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Amount</span>
+                    <span id="totalAmount">NGN 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Amount Deposited</span>
+                    <span id="amountDeposited">NGN 0</span>
+                </div>
+                <div class="summary-row balance">
+                    <span>Amount to Balance</span>
+                    <span id="amountBalance">NGN 0</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="receipt-footer">
+                <p><strong>Terms &amp; Conditions:</strong> Verify order details before payment. Keep this receipt for
+                    proof of purchase. Prices include applicable taxes. All transactions are subject to store policies.
+                    Thank you for your patronage!</p>
+                <p style="margin-top:8px;font-style:italic;">Enjoy more value with the app. Download it now.</p>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="print-actions">
+            <button class="btn-print" onclick="window.print()">🖨️ Print Receipt</button>
+            <button class="btn-back" onclick="window.close()">✕ Close</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+
+        function fmt(amount) {
+            return 'NGN ' + Number(amount).toLocaleString('en-NG', { minimumFractionDigits: 0 });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function collectionDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            d.setHours(d.getHours() + 5); // estimated 5h collection window
+            return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadReceipt() {
+            // Get sale ID from URL: /views/staff/receipt.html?id=123
+            const params = new URLSearchParams(window.location.search);
+            const saleId = params.get('id');
+
+            if (!saleId) {
+                document.getElementById('itemsBody').innerHTML =
+                    '<tr><td colspan="4" style="text-align:center;color:red;padding:12px 0;">No sale ID provided.</td></tr>';
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}/sales/${saleId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                });
+
+                if (!res.ok) throw new Error('Failed to load sale');
+                const data = await res.json();
+                const sale = data.sale;
+                const items = data.items;
+
+                // Header
+                document.getElementById('orderDate').textContent = formatDate(sale.created_at);
+                document.getElementById('slipNo').textContent = '#' + String(sale.id).padStart(8, '0');
+                document.getElementById('collectionDate').textContent = collectionDate(sale.created_at);
+
+                // Payment type & status
+                const isPaid = sale.payment_status === 'paid';
+                document.getElementById('paymentType').textContent = isPaid ? 'CASH / POS' : 'PENDING';
+                const badge = document.getElementById('statusBadge');
+                badge.innerHTML = isPaid
+                    ? '<span class="badge">ACCEPTED</span>'
+                    : '<span class="badge unpaid">PENDING</span>';
+
+                // Customer
+                document.getElementById('custName').textContent = sale.customer_name || '—';
+                document.getElementById('custPhone').textContent = sale.customer_phone || '—';
+                document.getElementById('attendant').textContent = sale.staff_name || '—';
+
+                // Items
+                let totalQty = 0;
+                let totalAmt = 0;
+                const tbody = document.getElementById('itemsBody');
+                tbody.innerHTML = '';
+
+                items.forEach(item => {
+                    totalQty += item.quantity;
+                    totalAmt += parseFloat(item.subtotal);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div class="item-name">${item.item_type.toUpperCase()}</div>
+                        </td>
+                        <td class="item-service">${item.service_name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${Number(item.subtotal).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Summary
+                document.getElementById('totalQty').textContent = totalQty;
+                document.getElementById('subTotal').textContent = fmt(totalAmt);
+                document.getElementById('totalAmount').textContent = fmt(totalAmt);
+                document.getElementById('amountDeposited').textContent = isPaid ? fmt(totalAmt) : 'NGN 0';
+                document.getElementById('amountBalance').textContent = isPaid ? 'NGN 0' : fmt(totalAmt);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('itemsBody').innerHTML =
+                    '<tr><td colspan="4" style="text-align:center;color:red;padding:12px 0;">Failed to load receipt.</td></tr>';
+            }
+        }
+
+        loadReceipt();
+    </script>
+</body>
+
+</html>
