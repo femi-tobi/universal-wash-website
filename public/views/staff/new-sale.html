@@ -6,6 +6,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Sale - Laundry Management</title>
     <link rel="stylesheet" href="/css/main.css">
+    <style>
+        /* ── Service-type & gender selector cards ── */
+        .selector-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .selector-card {
+            flex: 1;
+            min-width: 120px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .selector-card:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .selector-card.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        .selector-card .icon {
+            font-size: 26px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,6 +85,45 @@
                     <div class="form-group">
                         <label for="customerName">Customer Name *</label>
                         <input type="text" id="customerName" required placeholder="Full name">
+                    </div>
+                </div>
+
+                <hr style="margin: 24px 0; border: 1px solid var(--border-color);">
+
+                <!-- ── Gender & Service Type Selection ── -->
+                <h2 class="mb-3">Service Options</h2>
+
+                <div class="grid grid-2" style="gap: 24px; margin-bottom: 24px;">
+                    <!-- Gender -->
+                    <div>
+                        <p class="section-label">👤 Gender</p>
+                        <div class="selector-group" id="genderGroup">
+                            <div class="selector-card active" data-value="male" onclick="selectGender('male')">
+                                <span class="icon">👨</span> Male
+                            </div>
+                            <div class="selector-card" data-value="female" onclick="selectGender('female')">
+                                <span class="icon">👩</span> Female
+                            </div>
+                        </div>
+                        <!-- hidden input carries the value -->
+                        <input type="hidden" id="globalGender" value="male">
+                    </div>
+
+                    <!-- Service Type -->
+                    <div>
+                        <p class="section-label">🧹 Service Type</p>
+                        <div class="selector-group" id="serviceTypeGroup">
+                            <div class="selector-card active" data-value="0" onclick="selectServiceType(0)">
+                                <span class="icon">👔</span> Hanging
+                            </div>
+                            <div class="selector-card" data-value="1" onclick="selectServiceType(1)">
+                                <span class="icon">♨️</span> Pressing
+                            </div>
+                            <div class="selector-card" data-value="2" onclick="selectServiceType(2)">
+                                <span class="icon">⚡</span> Express
+                            </div>
+                        </div>
+                        <input type="hidden" id="globalServiceType" value="0">
                     </div>
                 </div>
 
@@ -81,6 +171,25 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/staff/sales.js"></script>
+    <script>
+        // ── Gender toggle ──────────────────────────────────────────────────────
+        function selectGender(value) {
+            document.getElementById('globalGender').value = value;
+            document.querySelectorAll('#genderGroup .selector-card').forEach(card => {
+                card.classList.toggle('active', card.dataset.value === value);
+            });
+            refreshAllItemDropdowns();
+        }
+
+        // ── Service type toggle ────────────────────────────────────────────────
+        function selectServiceType(index) {
+            document.getElementById('globalServiceType').value = index;
+            document.querySelectorAll('#serviceTypeGroup .selector-card').forEach(card => {
+                card.classList.toggle('active', parseInt(card.dataset.value) === index);
+            });
+            refreshAllItemDropdowns();
+        }
+    </script>
 </body>
 
 </html>
