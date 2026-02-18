@@ -1,0 +1,756 @@
+{
+  "bulkDiscounts": [
+    {
+      "threshold": 80,
+      "discountPct": 10,
+      "label": "Bulk wash of 80 garments attracts 10% discount"
+    },
+    {
+      "threshold": 120,
+      "discountPct": 10,
+      "label": "Bulk wash of 120 garments attracts 10% discount"
+    }
+  ],
+  "male": [
+    {
+      "name": "Shirts (Colored)",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Shirts (White)",
+      "base": 1200,
+      "prices": [
+        1300,
+        700,
+        1700
+      ]
+    },
+    {
+      "name": "Trousers",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Jeans",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Chinos",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Night Robes",
+      "base": 800,
+      "prices": [
+        900,
+        700,
+        1000
+      ]
+    },
+    {
+      "name": "Suit",
+      "base": 3000,
+      "prices": [
+        3100,
+        2000,
+        4500
+      ]
+    },
+    {
+      "name": "Native",
+      "base": 1500,
+      "prices": [
+        1600,
+        1000,
+        2000
+      ]
+    },
+    {
+      "name": "White Native",
+      "base": 1700,
+      "prices": [
+        1800,
+        1000,
+        2200
+      ]
+    },
+    {
+      "name": "Native Ankara",
+      "base": 1500,
+      "prices": [
+        1600,
+        700,
+        1700
+      ]
+    },
+    {
+      "name": "Agbada (Color)",
+      "base": 3000,
+      "prices": [
+        3600,
+        2500,
+        4500
+      ]
+    },
+    {
+      "name": "Agbada (White)",
+      "base": 3000,
+      "prices": [
+        4100,
+        2500,
+        5000
+      ]
+    },
+    {
+      "name": "Table Cloth (Small)",
+      "base": 1200,
+      "prices": [
+        null,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Table Cloth (Big)",
+      "base": 1000,
+      "prices": [
+        null,
+        null,
+        3200
+      ]
+    },
+    {
+      "name": "Danshiki (Complete)",
+      "base": 1000,
+      "prices": [
+        1300,
+        null,
+        900
+      ]
+    },
+    {
+      "name": "Jacket",
+      "base": 1200,
+      "prices": [
+        1100,
+        700,
+        1100
+      ]
+    },
+    {
+      "name": "Jalabia (Long)",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1200
+      ]
+    },
+    {
+      "name": "Hoodie",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1000
+      ]
+    },
+    {
+      "name": "Kaftan",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "T-Shirts (Colored)",
+      "base": 800,
+      "prices": [
+        800,
+        700,
+        1300
+      ]
+    },
+    {
+      "name": "T-Shirts (White)",
+      "base": 800,
+      "prices": [
+        800,
+        700,
+        900
+      ]
+    },
+    {
+      "name": "Sweater",
+      "base": 1000,
+      "prices": [
+        1100,
+        700,
+        1500
+      ]
+    },
+    {
+      "name": "Face Cap",
+      "base": 500,
+      "prices": [
+        600,
+        200,
+        800
+      ]
+    },
+    {
+      "name": "Tie",
+      "base": 500,
+      "prices": [
+        600,
+        200,
+        600
+      ]
+    },
+    {
+      "name": "Singlet",
+      "base": 500,
+      "prices": [
+        600,
+        300,
+        500
+      ]
+    },
+    {
+      "name": "A Pair of Socks",
+      "base": 500,
+      "prices": [
+        600,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Shorts",
+      "base": 500,
+      "prices": [
+        600,
+        500,
+        600
+      ]
+    },
+    {
+      "name": "Duvet (Big)",
+      "base": 4000,
+      "prices": [
+        null,
+        null,
+        4000
+      ]
+    },
+    {
+      "name": "Duvet Cover",
+      "base": 2500,
+      "prices": [
+        null,
+        null,
+        3000
+      ]
+    },
+    {
+      "name": "Center Rug",
+      "base": 5000,
+      "prices": [
+        null,
+        null,
+        2500
+      ]
+    },
+    {
+      "name": "Bedsheet (Big) - Color",
+      "base": 2000,
+      "prices": [
+        null,
+        1000,
+        1500
+      ]
+    },
+    {
+      "name": "Bedsheet (Big) - White",
+      "base": 2500,
+      "prices": [
+        null,
+        1000,
+        2000
+      ]
+    },
+    {
+      "name": "Bedsheet (Small) - Col",
+      "base": 800,
+      "prices": [
+        null,
+        700,
+        1000
+      ]
+    },
+    {
+      "name": "Bedsheet (Small) - White",
+      "base": 1300,
+      "prices": [
+        null,
+        700,
+        1200
+      ]
+    },
+    {
+      "name": "Towel (Small/Color)",
+      "base": 1100,
+      "prices": [
+        null,
+        200,
+        1700
+      ]
+    },
+    {
+      "name": "Towel (Small/White)",
+      "base": 1200,
+      "prices": [
+        null,
+        300,
+        1700
+      ]
+    },
+    {
+      "name": "Towel (Big/Color)",
+      "base": 1200,
+      "prices": [
+        1300,
+        null,
+        1700
+      ]
+    },
+    {
+      "name": "Towel (Big/White)",
+      "base": 1500,
+      "prices": [
+        1600,
+        null,
+        2500
+      ]
+    }
+  ],
+  "female": [
+    {
+      "name": "Shirts (Colored)",
+      "base": 900,
+      "prices": [
+        500,
+        1000,
+        null
+      ]
+    },
+    {
+      "name": "Shirts (White)",
+      "base": 1000,
+      "prices": [
+        500,
+        1100,
+        null
+      ]
+    },
+    {
+      "name": "Trousers",
+      "base": 800,
+      "prices": [
+        500,
+        null,
+        800
+      ]
+    },
+    {
+      "name": "Jeans",
+      "base": 800,
+      "prices": [
+        500,
+        null,
+        700
+      ]
+    },
+    {
+      "name": "Chinos",
+      "base": 800,
+      "prices": [
+        500,
+        null,
+        800
+      ]
+    },
+    {
+      "name": "Skirt Suit",
+      "base": 3000,
+      "prices": [
+        1000,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Cap",
+      "base": 400,
+      "prices": [
+        250,
+        null,
+        3500
+      ]
+    },
+    {
+      "name": "Skirt Only",
+      "base": 600,
+      "prices": [
+        500,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Blouse Only",
+      "base": 600,
+      "prices": [
+        500,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Native",
+      "base": 1300,
+      "prices": [
+        600,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Jacket",
+      "base": 900,
+      "prices": [
+        600,
+        null,
+        700
+      ]
+    },
+    {
+      "name": "Jalabia (Big)",
+      "base": 900,
+      "prices": [
+        500,
+        null,
+        1000
+      ]
+    },
+    {
+      "name": "Jalabia (Small)",
+      "base": 500,
+      "prices": [
+        200,
+        null,
+        900
+      ]
+    },
+    {
+      "name": "Kaftan",
+      "base": 600,
+      "prices": [
+        500,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "T-Shirts (Colored)",
+      "base": 600,
+      "prices": [
+        400,
+        null,
+        700
+      ]
+    },
+    {
+      "name": "T-Shirts (White)",
+      "base": 700,
+      "prices": [
+        500,
+        null,
+        750
+      ]
+    },
+    {
+      "name": "Sweater",
+      "base": 600,
+      "prices": [
+        500,
+        null,
+        800
+      ]
+    },
+    {
+      "name": "Iro & Buba (White)",
+      "base": 1500,
+      "prices": [
+        100,
+        null,
+        300
+      ]
+    },
+    {
+      "name": "Iro & Buba (Color)",
+      "base": 1000,
+      "prices": [
+        1000,
+        null,
+        1200
+      ]
+    },
+    {
+      "name": "Iro & Buba Lace (White)",
+      "base": 2500,
+      "prices": [
+        2500,
+        null,
+        2600
+      ]
+    },
+    {
+      "name": "Iro & Buba Lace (Color)",
+      "base": 2000,
+      "prices": [
+        2000,
+        null,
+        2600
+      ]
+    },
+    {
+      "name": "Gele",
+      "base": 500,
+      "prices": [
+        500,
+        null,
+        1200
+      ]
+    },
+    {
+      "name": "Day Dress/Gown (Long) White",
+      "base": 900,
+      "prices": [
+        900,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Day Dress/Gown (Short) Color",
+      "base": 800,
+      "prices": [
+        800,
+        null,
+        700
+      ]
+    },
+    {
+      "name": "Day Dress/Gown (Long) Lace",
+      "base": 1000,
+      "prices": [
+        1000,
+        null,
+        1200
+      ]
+    },
+    {
+      "name": "Day Dress/Gown (Short) Lace",
+      "base": 900,
+      "prices": [
+        900,
+        null,
+        1000
+      ]
+    },
+    {
+      "name": "Shorts",
+      "base": 500,
+      "prices": [
+        300,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Ankara",
+      "base": 700,
+      "prices": [
+        600,
+        null,
+        800
+      ]
+    },
+    {
+      "name": "Shorts (Alt)",
+      "base": 500,
+      "prices": [
+        500,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Wedding Gown",
+      "base": 4000,
+      "prices": [
+        200,
+        null,
+        5000
+      ]
+    },
+    {
+      "name": "Socks",
+      "base": 400,
+      "prices": [
+        400,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Agbada (Complete)",
+      "base": 3000,
+      "prices": [
+        1500,
+        null,
+        3500
+      ]
+    },
+    {
+      "name": "Iro",
+      "base": 500,
+      "prices": [
+        250,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Joggers",
+      "base": 800,
+      "prices": [
+        500,
+        null,
+        750
+      ]
+    },
+    {
+      "name": "Suit",
+      "base": 2500,
+      "prices": [
+        null,
+        null,
+        3500
+      ]
+    },
+    {
+      "name": "Curtain (Heavy)",
+      "base": 2500,
+      "prices": [
+        null,
+        null,
+        3000
+      ]
+    },
+    {
+      "name": "Curtain (Light)",
+      "base": 1500,
+      "prices": [
+        null,
+        null,
+        2500
+      ]
+    },
+    {
+      "name": "Travelling Bag",
+      "base": 1000,
+      "prices": [
+        null,
+        null,
+        600
+      ]
+    },
+    {
+      "name": "Boxers",
+      "base": 500,
+      "prices": [
+        600,
+        350,
+        500
+      ]
+    },
+    {
+      "name": "Hijab",
+      "base": 700,
+      "prices": [
+        800,
+        400,
+        800
+      ]
+    },
+    {
+      "name": "Tracksuit",
+      "base": 1700,
+      "prices": [
+        1800,
+        600,
+        2000
+      ]
+    },
+    {
+      "name": "Joggers (Alt)",
+      "base": 1000,
+      "prices": [
+        1100,
+        600,
+        1400
+      ]
+    },
+    {
+      "name": "Graduation Gown",
+      "base": 2500,
+      "prices": [
+        2600,
+        1000,
+        3500
+      ]
+    },
+    {
+      "name": "Choir Gown",
+      "base": 2000,
+      "prices": [
+        2100,
+        600,
+        2500
+      ]
+    }
+  ]
+}

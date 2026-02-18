@@ -4,13 +4,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Services - Admin</title>
+    <title>Price List - Admin</title>
     <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .price-table th,
+        .price-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .price-table thead th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .price-table thead th:first-child,
+        .price-table thead th:nth-child(2) {
+            text-align: left;
+        }
+
+        .price-table tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .price-table tbody tr:hover {
+            background: #eef2ff;
+        }
+
+        .price-table td.price-cell {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .price-table td.na {
+            text-align: center;
+            color: #ccc;
+            font-size: 18px;
+        }
+
+        .section-header td {
+            background: #1e293b !important;
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            text-align: center;
+            letter-spacing: 0.06em;
+            padding: 12px;
+        }
+
+        .bulk-row td {
+            background: #fef9c3 !important;
+            font-weight: 700;
+            font-size: 13px;
+            color: #854d0e;
+        }
+
+        .sn {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-align: center !important;
+            width: 36px;
+        }
+
+        /* Editable price inputs */
+        .price-input {
+            width: 90px;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            background: #fff;
+        }
+
+        .price-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+        }
+
+        .price-input.empty {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar h2 {
+            margin: 0;
+            flex: 1;
+        }
+
+        .save-btn {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .save-btn:hover {
+            background: #15803d;
+        }
+
+        .save-btn:disabled {
+            background: #86efac;
+            cursor: not-allowed;
+        }
+
+        .legend {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .bulk-label-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #fef9c3;
+            color: #854d0e;
+        }
+    </style>
 </head>
 
 <body>
     <div class="header">
-        <h1>⚙️ Manage Services</h1>
+        <h1>💰 Price List</h1>
         <div class="user-info">
             <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
             <button class="btn btn-secondary" onclick="logout()">Logout</button>
@@ -20,44 +165,28 @@
     <div class="container">
         <div id="alert" class="hidden"></div>
 
-        <!-- Add New Service -->
         <div class="card">
-            <h2 class="mb-2">Add New Service</h2>
-            <form id="addServiceForm">
-                <div class="grid grid-3">
-                    <div class="form-group">
-                        <label>Service Name *</label>
-                        <input type="text" id="serviceName" required placeholder="e.g., Wash">
-                    </div>
-                    <div class="form-group">
-                        <label>Base Price ($) *</label>
-                        <input type="number" id="servicePrice" step="0.01" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <input type="text" id="serviceDesc" placeholder="Optional description">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary">➕ Add Service</button>
-            </form>
-        </div>
+            <div class="toolbar">
+                <h2>All Prices (NGN)</h2>
+                <button class="save-btn" id="saveBtn" onclick="savePricelist()">💾 Save All Changes</button>
+            </div>
+            <p class="legend">✏️ Click any price field to edit it. Leave blank (or 0) to mark as "not available" for
+                that service type.</p>
 
-        <!-- Services List -->
-        <div class="card">
-            <h2 class="mb-2">All Services</h2>
-            <table>
+            <table class="price-table" id="priceTable">
                 <thead>
                     <tr>
-                        <th>Service Name</th>
-                        <th>Description</th>
+                        <th class="sn">S/N</th>
+                        <th>Item</th>
                         <th>Base Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Hanging</th>
+                        <th>Pressing</th>
+                        <th>Express</th>
                     </tr>
                 </thead>
-                <tbody id="servicesBody">
+                <tbody id="priceBody">
                     <tr>
-                        <td colspan="5" class="text-center">Loading...</td>
+                        <td colspan="6" class="text-center">Loading...</td>
                     </tr>
                 </tbody>
             </table>
@@ -65,7 +194,149 @@
     </div>
 
     <script src="/js/auth.js"></script>
-    <script src="/js/admin/services.js"></script>
+    <script>
+        checkAuth();
+        const user = getCurrentUser();
+        if (user.role !== 'admin') {
+            alert('Access denied');
+            window.location.href = '/';
+        }
+
+        let priceData = null;
+
+        async function loadPricelist() {
+            try {
+                const res = await fetch('/api/pricelist', { headers: getAuthHeaders() });
+                priceData = await res.json();
+                renderTable();
+            } catch (e) {
+                showAlert('Failed to load price list', 'error');
+            }
+        }
+
+        function priceInput(gender, idx, col, val) {
+            const isEmpty = val === null || val === undefined;
+            return `<input
+                type="number"
+                min="0"
+                class="price-input ${isEmpty ? 'empty' : ''}"
+                data-gender="${gender}"
+                data-idx="${idx}"
+                data-col="${col}"
+                value="${isEmpty ? '' : val}"
+                placeholder="—"
+                oninput="onPriceChange(this)"
+            >`;
+        }
+
+        function onPriceChange(el) {
+            el.classList.toggle('empty', el.value === '');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('priceBody');
+            let html = '';
+            let sn = 1;
+
+            ['male', 'female'].forEach(gender => {
+                html += `<tr class="section-header"><td colspan="6">${gender === 'male' ? '👨 MEN' : '👩 WOMEN'}</td></tr>`;
+                priceData[gender].forEach((item, idx) => {
+                    html += `
+                        <tr>
+                            <td class="sn">${sn++}</td>
+                            <td><strong>${item.name}</strong></td>
+                            <td class="price-cell">${priceInput(gender, idx, 'base', item.base)}</td>
+                            <td class="price-cell">${priceInput(gender, idx, 0, item.prices[0])}</td>
+                            <td class="price-cell">${priceInput(gender, idx, 1, item.prices[1])}</td>
+                            <td class="price-cell">${priceInput(gender, idx, 2, item.prices[2])}</td>
+                        </tr>`;
+                });
+            });
+
+            // Bulk discount rows
+            html += `<tr class="section-header"><td colspan="6">📦 BULK DISCOUNT RULES</td></tr>`;
+            (priceData.bulkDiscounts || []).forEach((rule, i) => {
+                html += `
+                    <tr class="bulk-row">
+                        <td class="sn">${i + 1}</td>
+                        <td colspan="3">
+                            <input type="text" class="bulk-label-input" data-bulk="${i}" data-field="label"
+                                value="${rule.label}" placeholder="Discount description">
+                        </td>
+                        <td>
+                            <label style="font-size:12px;display:block;margin-bottom:2px;">Min Garments</label>
+                            <input type="number" class="price-input" style="width:80px;" data-bulk="${i}" data-field="threshold"
+                                value="${rule.threshold}" min="1">
+                        </td>
+                        <td>
+                            <label style="font-size:12px;display:block;margin-bottom:2px;">Discount %</label>
+                            <input type="number" class="price-input" style="width:70px;" data-bulk="${i}" data-field="discountPct"
+                                value="${rule.discountPct}" min="0" max="100">
+                        </td>
+                    </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function collectData() {
+            // Collect item prices
+            document.querySelectorAll('.price-input[data-gender]').forEach(input => {
+                const { gender, idx, col } = input.dataset;
+                const val = input.value === '' ? null : parseFloat(input.value);
+                if (col === 'base') {
+                    priceData[gender][idx].base = val;
+                } else {
+                    priceData[gender][idx].prices[parseInt(col)] = val;
+                }
+            });
+
+            // Collect bulk discount rules
+            document.querySelectorAll('[data-bulk]').forEach(input => {
+                const { bulk, field } = input.dataset;
+                const i = parseInt(bulk);
+                if (!priceData.bulkDiscounts[i]) return;
+                if (field === 'label') {
+                    priceData.bulkDiscounts[i].label = input.value;
+                } else if (field === 'threshold') {
+                    priceData.bulkDiscounts[i].threshold = parseInt(input.value) || 0;
+                } else if (field === 'discountPct') {
+                    priceData.bulkDiscounts[i].discountPct = parseFloat(input.value) || 0;
+                }
+            });
+
+            return priceData;
+        }
+
+        async function savePricelist() {
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            const payload = collectData();
+
+            try {
+                const res = await fetch('/api/pricelist', {
+                    method: 'PUT',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('✅ Price list saved! Changes are now live for staff.', 'success');
+                } else {
+                    showAlert(data.error || 'Failed to save', 'error');
+                }
+            } catch (e) {
+                showAlert('Connection error', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Save All Changes';
+            }
+        }
+
+        loadPricelist();
+    </script>
 </body>
 
 </html>
