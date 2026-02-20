@@ -480,8 +480,25 @@
             display: none !important;
         }
 
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .garment-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
         @media (max-width: 1024px) {
             .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .garment-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
@@ -500,6 +517,10 @@
             }
 
             .shortcuts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .garment-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -646,6 +667,53 @@
                 </div>
             </div>
 
+            <!-- Garment / Item Count Stats -->
+            <div class="section-label">Garments Processed</div>
+            <div class="stats-grid garment-grid" style="margin-bottom:24px;">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="stat-label">Garments Today</div>
+                        <div class="stat-value" id="garmentsToday">—</div>
+                        <div class="stat-sub">items washed today</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="stat-label">Garments This Week</div>
+                        <div class="stat-value" id="garmentsWeek">—</div>
+                        <div class="stat-sub">last 7 days</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="stat-label">Garments This Month</div>
+                        <div class="stat-value" id="garmentsMonth">—</div>
+                        <div class="stat-sub">this calendar month</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Shortcuts -->
             <div class="shortcuts-grid">
                 <a class="shortcut-card" href="services.html">
@@ -703,11 +771,11 @@
                 </a>
             </div>
 
-            <!-- Chart + Outstanding table -->
+            <!-- Chart + Outstanding + Service Breakdown -->
             <div class="two-col">
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title">Sales by Service (Last 30 Days)</div>
+                        <div class="panel-title">Revenue by Service (Last 30 Days)</div>
                     </div>
                     <div class="panel-body">
                         <canvas id="serviceChart" style="max-height:260px;"></canvas>
@@ -716,26 +784,49 @@
 
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title">Outstanding Payments</div>
+                        <div class="panel-title">Garments by Service Type (Last 30 Days)</div>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                    <th></th>
+                                    <th>Service</th>
+                                    <th style="text-align:center">Garments</th>
+                                    <th style="text-align:center">Orders</th>
                                 </tr>
                             </thead>
-                            <tbody id="outstandingBody">
+                            <tbody id="garmentBreakdownBody">
                                 <tr>
-                                    <td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Loading...
+                                    <td colspan="3" style="text-align:center;color:var(--muted);padding:24px">Loading...
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-bottom:24px;">
+                <div class="panel-header">
+                    <div class="panel-title">Outstanding Payments</div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="outstandingBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

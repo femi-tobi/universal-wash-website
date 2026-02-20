@@ -119,3 +119,55 @@ exports.getOutstandingPayments = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch outstanding payments' });
     }
 };
+
+// Get garment/item count statistics
+exports.getGarmentStats = async (req, res) => {
+    try {
+        // Today's garment count
+        const [todayResult] = await db.query(
+            `SELECT COALESCE(SUM(si.quantity), 0) AS today_count
+             FROM sale_items si
+             JOIN sales s ON si.sale_id = s.id
+             WHERE DATE(s.created_at) = DATE('now')`
+        );
+
+        // This week's garment count
+        const [weekResult] = await db.query(
+            `SELECT COALESCE(SUM(si.quantity), 0) AS week_count
+             FROM sale_items si
+             JOIN sales s ON si.sale_id = s.id
+             WHERE s.created_at >= DATE('now', '-7 days')`
+        );
+
+        // This month's garment count
+        const [monthResult] = await db.query(
+            `SELECT COALESCE(SUM(si.quantity), 0) AS month_count
+             FROM sale_items si
+             JOIN sales s ON si.sale_id = s.id
+             WHERE strftime('%Y-%m', s.created_at) = strftime('%Y-%m', 'now')`
+        );
+
+        // Per-service breakdown (last 30 days)
+        const [breakdown] = await db.query(
+            `SELECT srv.name AS service_name,
+                    COALESCE(SUM(si.quantity), 0) AS total_items,
+                    COUNT(DISTINCT si.sale_id) AS order_count
+             FROM sale_items si
+             JOIN services srv ON si.service_id = srv.id
+             JOIN sales s ON si.sale_id = s.id
+             WHERE s.created_at >= DATE('now', '-30 days')
+             GROUP BY srv.id, srv.name
+             ORDER BY total_items DESC`
+        );
+
+        res.json({
+            today: todayResult[0].today_count,
+            week: weekResult[0].week_count,
+            month: monthResult[0].month_count,
+            breakdown: breakdown
+        });
+    } catch (error) {
+        console.error('Get garment stats error:', error);
+        res.status(500).json({ error: 'Failed to fetch garment statistics' });
+    }
+};

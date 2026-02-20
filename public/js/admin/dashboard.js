@@ -16,7 +16,8 @@ async function loadDashboard() {
     await Promise.all([
         loadRevenueStats(),
         loadOutstandingPayments(),
-        loadServiceBreakdown()
+        loadServiceBreakdown(),
+        loadGarmentStats()
     ]);
 }
 
@@ -42,6 +43,33 @@ async function loadRevenueStats() {
         document.getElementById('monthlyRevenue').textContent = fmt(monthlyTotal);
     } catch (error) {
         console.error('Error loading revenue stats:', error);
+    }
+}
+
+// Load garment count statistics
+async function loadGarmentStats() {
+    try {
+        const res = await fetch('/api/dashboard/garments', { headers: getAuthHeaders() });
+        const data = await res.json();
+
+        document.getElementById('garmentsToday').textContent = Number(data.today || 0).toLocaleString();
+        document.getElementById('garmentsWeek').textContent = Number(data.week || 0).toLocaleString();
+        document.getElementById('garmentsMonth').textContent = Number(data.month || 0).toLocaleString();
+
+        const tbody = document.getElementById('garmentBreakdownBody');
+        if (!data.breakdown || data.breakdown.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px">No data yet</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.breakdown.map(row => `
+            <tr>
+                <td style="font-weight:600">${row.service_name}</td>
+                <td style="text-align:center;font-weight:700;color:var(--blue)">${Number(row.total_items).toLocaleString()}</td>
+                <td style="text-align:center;color:var(--muted)">${row.order_count}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading garment stats:', error);
     }
 }
 

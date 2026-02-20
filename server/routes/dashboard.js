@@ -13,5 +13,6 @@ router.get('/revenue/weekly', dashboardController.getWeeklyRevenue);
 router.get('/revenue/monthly', dashboardController.getMonthlyRevenue);
 router.get('/sales-by-service', dashboardController.getSalesByService);
 router.get('/outstanding', dashboardController.getOutstandingPayments);
+router.get('/garments', dashboardController.getGarmentStats);
 
 module.exports = router;
