@@ -10,6 +10,7 @@ router.use(authMiddleware);
 // Staff and Admin can access these routes
 router.post('/', salesController.createSale);
 router.get('/daily', salesController.getDailySales);
+router.get('/unpaid', salesController.getUnpaidSales);
 router.get('/:id', salesController.getSaleDetails);
 router.put('/:id/payment', salesController.updatePaymentStatus);
 

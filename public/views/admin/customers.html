@@ -4,163 +4,960 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer History - Admin</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <title>Customer History - Universal Wash Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --blue: #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-light: #eff6ff;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --amber: #d97706;
+            --amber-light: #fffbeb;
+            --red: #dc2626;
+            --red-light: #fef2f2;
+            --purple: #7c3aed;
+            --purple-light: #f5f3ff;
+            --sidebar-w: 220px;
+            --header-h: 64px;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--blue);
+            line-height: 1.2;
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            padding: 8px 8px 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .nav-item:hover {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .nav-item.active {
+            background: var(--blue-light);
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--purple);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* ── Main ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: var(--header-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .topbar-date {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-logout:hover {
+            background: var(--red-light);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        /* ── Page ── */
+        .page {
+            padding: 28px;
+        }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 360px;
+        }
+
+        .search-wrap svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px 10px 38px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .search-input:focus {
+            border-color: var(--blue);
+        }
+
+        /* ── Table ── */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .row-count {
+            font-size: 12px;
+            color: var(--muted);
+            background: var(--bg);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 11px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #fafcff;
+        }
+
+        .cust-name {
+            font-weight: 600;
+        }
+
+        .cust-phone {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .badge-paid {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--green-light);
+            color: var(--green);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+
+        .badge-unpaid {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--red-light);
+            color: var(--red);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+
+        .btn-view {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--blue);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-view:hover {
+            background: var(--blue-light);
+            border-color: var(--blue);
+        }
+
+        /* ── Modal overlay ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 500;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 780px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-16px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .btn-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+
+        .btn-close:hover {
+            background: var(--red-light);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* ── Customer summary strip ── */
+        .cust-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .strip-card {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .strip-label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .strip-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .strip-value.red {
+            color: var(--red);
+        }
+
+        .strip-value.green {
+            color: var(--green);
+        }
+
+        /* ── Order accordion ── */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        .order-block {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .order-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            cursor: pointer;
+            user-select: none;
+            background: var(--surface);
+            transition: background 0.12s;
+        }
+
+        .order-head:hover {
+            background: var(--bg);
+        }
+
+        .order-date {
+            font-size: 12px;
+            color: var(--muted);
+            flex: 1;
+        }
+
+        .order-amount {
+            font-size: 13px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .chevron {
+            transition: transform 0.2s;
+            color: var(--muted);
+        }
+
+        .order-block.open .chevron {
+            transform: rotate(90deg);
+        }
+
+        .order-items {
+            display: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .order-block.open .order-items {
+            display: block;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .items-table th {
+            padding: 8px 14px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--muted);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .items-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+        }
+
+        .item-type {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .order-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .order-total-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #toast.error {
+            background: var(--red);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .cust-strip {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="header">
-        <h1>📋 Customer History</h1>
-        <div class="user-info">
-            <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
-            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/logo2.jpeg" alt="Logo" onerror="this.style.display='none'">
+            <div>
+                <div class="brand-name">Universal Wash</div>
+                <div class="brand-sub">Admin Panel</div>
+            </div>
         </div>
-    </div>
-
-    <div class="container">
-        <div id="alert" class="hidden"></div>
-
-        <div class="card">
-            <h2 class="mb-2">All Customers</h2>
-            <input type="text" id="searchCustomer" placeholder="🔍 Search by name or phone..."
-                style="margin-bottom: 20px;">
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Customer Name</th>
-                        <th>Phone</th>
-                        <th>First Visit</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="customersBody">
-                    <tr>
-                        <td colspan="4" class="text-center">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Overview</div>
+            <a class="nav-item" href="dashboard.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                Dashboard
+            </a>
+            <div class="nav-label">Manage</div>
+            <a class="nav-item" href="services.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+                </svg>
+                Services
+            </a>
+            <a class="nav-item" href="staff.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Staff
+            </a>
+            <a class="nav-item active" href="customers.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                Customers
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <div class="user-avatar" id="userInitial">A</div>
+                <div>
+                    <div class="user-name" id="adminName">Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
         </div>
+    </aside>
 
-        <!-- Customer Details Modal -->
-        <div id="customerModal" class="hidden">
-            <div class="card">
-                <h2 class="mb-2">Customer Details</h2>
-                <button class="btn btn-secondary" onclick="closeCustomerModal()">Close</button>
-                <div id="customerDetails"></div>
+    <!-- Main -->
+    <div class="main">
+        <header class="topbar">
+            <div>
+                <div class="topbar-title">Customer History</div>
+                <div class="topbar-date" id="todayDate"></div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </button>
+        </header>
+
+        <div class="page">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input class="search-input" id="searchInput" type="text" placeholder="Search by name or phone…">
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-card">
+                <div class="panel-header">
+                    <div class="panel-title">All Customers</div>
+                    <span class="row-count" id="rowCount">—</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Total Orders</th>
+                                <th>Total Spent</th>
+                                <th>Outstanding</th>
+                                <th>First Visit</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Order Details Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay" onclick="handleOverlayClick(event)">
+        <div class="modal" id="modalBox">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Customer Orders</div>
+                <button class="btn-close" onclick="closeModal()">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
     <script src="/js/auth.js"></script>
     <script>
         checkAuth();
-
         const user = getCurrentUser();
-        if (user.role !== 'admin') {
-            alert('Access denied');
-            window.location.href = '/';
-        }
+        if (user?.role !== 'admin') { alert('Access denied'); window.location.href = '/'; }
+
+        const name = user?.full_name || 'Admin';
+        document.getElementById('adminName').textContent = name;
+        document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+        document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-GB', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
 
         let allCustomers = [];
 
-        // Load customers
+        function fmt(n) { return 'NGN ' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 0 }); }
+        function fmtDate(str) {
+            if (!str) return '—';
+            return new Date(str).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        function fmtDateTime(str) {
+            if (!str) return '—';
+            const d = new Date(str);
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         async function loadCustomers() {
             try {
-                const response = await fetch('/api/customers', {
-                    headers: getAuthHeaders()
-                });
-                allCustomers = await response.json();
-                displayCustomers(allCustomers);
-            } catch (error) {
-                console.error('Error loading customers:', error);
+                const res = await fetch('/api/customers', { headers: getAuthHeaders() });
+                allCustomers = await res.json();
+                renderCustomers(allCustomers);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('customersBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:32px">Failed to load customers.</td></tr>';
             }
         }
 
-        // Display customers
-        function displayCustomers(customers) {
+        function renderCustomers(list) {
             const tbody = document.getElementById('customersBody');
-
-            if (customers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No customers found</td></tr>';
+            document.getElementById('rowCount').textContent = list.length + ' customer' + (list.length !== 1 ? 's' : '');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No customers found.</td></tr>';
                 return;
             }
-
-            tbody.innerHTML = customers.map(customer => `
+            tbody.innerHTML = list.map(c => `
                 <tr>
-                    <td><strong>${customer.name}</strong></td>
-                    <td>${customer.phone}</td>
-                    <td>${new Date(customer.created_at).toLocaleDateString()}</td>
                     <td>
-                        <button class="btn btn-primary" style="min-height: auto; padding: 8px 16px; font-size: 14px;" onclick="viewCustomerHistory(${customer.id})">
-                            📖 View History
+                        <div class="cust-name">${escHtml(c.name)}</div>
+                        <div class="cust-phone">${escHtml(c.phone)}</div>
+                    </td>
+                    <td>${c.total_orders ?? '—'}</td>
+                    <td>${c.total_spent != null ? fmt(c.total_spent) : '—'}</td>
+                    <td>${c.outstanding_amount != null ? (c.outstanding_amount > 0 ? `<span style="color:var(--red);font-weight:700;">${fmt(c.outstanding_amount)}</span>` : `<span style="color:var(--green);font-weight:600;">Nil</span>`) : '—'}</td>
+                    <td style="font-size:12px;color:var(--muted);">${fmtDate(c.created_at)}</td>
+                    <td>
+                        <button class="btn-view" onclick="viewHistory(${c.id}, '${escHtml(c.name)}')">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            View Orders
                         </button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // Search customers
-        document.getElementById('searchCustomer').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allCustomers.filter(c =>
-                c.name.toLowerCase().includes(query) ||
-                c.phone.includes(query)
-            );
-            displayCustomers(filtered);
+        document.getElementById('searchInput').addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            renderCustomers(allCustomers.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q)));
         });
 
-        // View customer history
-        async function viewCustomerHistory(customerId) {
-            try {
-                const response = await fetch(`/api/customers/${customerId}/history`, {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
+        async function viewHistory(customerId, customerName) {
+            document.getElementById('modalTitle').textContent = customerName + ' — Order History';
+            document.getElementById('modalBody').innerHTML = '<p style="text-align:center;color:var(--muted);padding:32px 0;">Loading…</p>';
+            document.getElementById('modalOverlay').classList.remove('hidden');
 
-                const detailsHtml = `
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <h3>${data.customer.name}</h3>
-                        <p><strong>Phone:</strong> ${data.customer.phone}</p>
-                        <p><strong>Total Orders:</strong> ${data.summary.total_orders}</p>
-                        <p><strong>Total Spent:</strong> $${parseFloat(data.summary.total_spent).toFixed(2)}</p>
-                        <p><strong>Outstanding:</strong> $${parseFloat(data.summary.outstanding_amount).toFixed(2)}</p>
+            try {
+                const res = await fetch(`/api/customers/${customerId}/history`, { headers: getAuthHeaders() });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                const { customer, summary, orders } = data;
+                const outstanding = parseFloat(summary.outstanding_amount) || 0;
+
+                let html = `
+                    <div class="cust-strip">
+                        <div class="strip-card">
+                            <div class="strip-label">Total Orders</div>
+                            <div class="strip-value">${summary.total_orders}</div>
+                        </div>
+                        <div class="strip-card">
+                            <div class="strip-label">Total Spent</div>
+                            <div class="strip-value green">${fmt(summary.total_spent)}</div>
+                        </div>
+                        <div class="strip-card">
+                            <div class="strip-label">Outstanding Balance</div>
+                            <div class="strip-value ${outstanding > 0 ? 'red' : 'green'}">${outstanding > 0 ? fmt(outstanding) : 'Nil'}</div>
+                        </div>
                     </div>
-                    
-                    <h3>Order History</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Staff</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.orders.map(order => `
-                                <tr>
-                                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                                    <td>$${parseFloat(order.total_amount).toFixed(2)}</td>
-                                    <td><span class="badge badge-${order.payment_status}">${order.payment_status}</span></td>
-                                    <td>${order.staff_name}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
                 `;
 
-                document.getElementById('customerDetails').innerHTML = detailsHtml;
-                document.getElementById('customerModal').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error loading customer history:', error);
-                showAlert('Failed to load customer history', 'error');
+                if (orders.length === 0) {
+                    html += '<p style="text-align:center;color:var(--muted);padding:24px 0;">No orders yet.</p>';
+                } else {
+                    html += '<div class="orders-list">';
+                    orders.forEach((order, idx) => {
+                        const isPaid = order.payment_status === 'paid';
+                        const badge = isPaid
+                            ? `<span class="badge-paid">PAID</span>`
+                            : `<span class="badge-unpaid">OWING</span>`;
+
+                        let itemRows = '';
+                        if (order.items && order.items.length > 0) {
+                            itemRows = order.items.map(item => `
+                                <tr>
+                                    <td>
+                                        <div class="item-name">${escHtml(item.service_name)}</div>
+                                        <div class="item-type">${escHtml(item.item_type)}</div>
+                                    </td>
+                                    <td style="text-align:center;">${item.quantity}</td>
+                                    <td>${fmt(item.unit_price)}</td>
+                                    <td style="font-weight:700;">${fmt(item.subtotal)}</td>
+                                </tr>
+                            `).join('');
+                        } else {
+                            itemRows = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:12px;">No item details recorded.</td></tr>';
+                        }
+
+                        html += `
+                            <div class="order-block" id="order-${idx}">
+                                <div class="order-head" onclick="toggleOrder('order-${idx}')">
+                                    <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    <span class="order-date">${fmtDateTime(order.created_at)} &nbsp;·&nbsp; By: ${escHtml(order.staff_name)}</span>
+                                    ${badge}
+                                    <span class="order-amount">${fmt(order.total_amount)}</span>
+                                </div>
+                                <div class="order-items">
+                                    <table class="items-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Item / Service</th>
+                                                <th style="text-align:center;">Qty</th>
+                                                <th>Unit Price</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${itemRows}</tbody>
+                                    </table>
+                                    <div class="order-footer">
+                                        <span>Order #${order.id}</span>
+                                        <span class="order-total-label">Total: ${fmt(order.total_amount)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                document.getElementById('modalBody').innerHTML = html;
+            } catch (e) {
+                document.getElementById('modalBody').innerHTML = '<p style="text-align:center;color:var(--red);padding:32px 0;">Failed to load orders.</p>';
             }
         }
 
-        function closeCustomerModal() {
-            document.getElementById('customerModal').classList.add('hidden');
+        function toggleOrder(id) {
+            document.getElementById(id).classList.toggle('open');
         }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
         loadCustomers();
     </script>

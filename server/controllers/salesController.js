@@ -156,3 +156,41 @@ exports.updatePaymentStatus = async (req, res) => {
         res.status(500).json({ error: 'Failed to update payment status' });
     }
 };
+
+// Get all unpaid sales (with optional name/phone search)
+exports.getUnpaidSales = async (req, res) => {
+    try {
+        const { q } = req.query;
+        let query = `
+            SELECT s.id, s.total_amount, s.created_at,
+                   c.name AS customer_name, c.phone AS customer_phone,
+                   u.full_name AS staff_name,
+                   (SELECT COUNT(*) FROM sale_items si WHERE si.sale_id = s.id) AS item_count
+            FROM sales s
+            JOIN customers c ON s.customer_id = c.id
+            JOIN users u ON s.staff_id = u.id
+            WHERE s.payment_status = 'unpaid'
+        `;
+        const params = [];
+        if (q && q.trim() !== '') {
+            query += ` AND (c.name LIKE ? OR c.phone LIKE ?)`;
+            params.push(`%${q.trim()}%`, `%${q.trim()}%`);
+        }
+        query += ` ORDER BY s.created_at DESC`;
+
+        const [rows] = await db.query(query, params);
+
+        // Total outstanding
+        let totalQuery = `SELECT COALESCE(SUM(total_amount),0) AS total_outstanding, COUNT(*) AS total_count FROM sales WHERE payment_status = 'unpaid'`;
+        const [totals] = await db.query(totalQuery);
+
+        res.json({
+            sales: rows,
+            total_outstanding: totals[0].total_outstanding,
+            total_count: totals[0].total_count
+        });
+    } catch (error) {
+        console.error('Get unpaid sales error:', error);
+        res.status(500).json({ error: 'Failed to fetch unpaid sales' });
+    }
+};

@@ -1,6 +1,11 @@
 {
   "bulkDiscounts": [
     {
+      "threshold": 40,
+      "discountPct": 5,
+      "label": "Bulk wash of 40 garments attracts 5% discount"
+    },
+    {
       "threshold": 80,
       "discountPct": 10,
       "label": "Bulk wash of 80 garments attracts 10% discount"

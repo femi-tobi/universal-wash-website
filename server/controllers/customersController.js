@@ -1,10 +1,17 @@
 const db = require('../config/database');
 
-// Get all customers
+// Get all customers (with order summary stats)
 exports.getAllCustomers = async (req, res) => {
     try {
         const [customers] = await db.query(
-            'SELECT * FROM customers ORDER BY created_at DESC'
+            `SELECT c.*,
+                COUNT(s.id) AS total_orders,
+                COALESCE(SUM(s.total_amount), 0) AS total_spent,
+                COALESCE(SUM(CASE WHEN s.payment_status = 'unpaid' THEN s.total_amount ELSE 0 END), 0) AS outstanding_amount
+             FROM customers c
+             LEFT JOIN sales s ON s.customer_id = c.id
+             GROUP BY c.id
+             ORDER BY c.created_at DESC`
         );
 
         res.json(customers);
@@ -39,6 +46,19 @@ exports.getCustomerHistory = async (req, res) => {
             [customerId]
         );
 
+        // For each order, fetch the individual items
+        for (const order of orders) {
+            const [items] = await db.query(
+                `SELECT si.quantity, si.unit_price, si.subtotal, si.item_type,
+                        srv.name as service_name
+                 FROM sale_items si
+                 JOIN services srv ON si.service_id = srv.id
+                 WHERE si.sale_id = ?`,
+                [order.id]
+            );
+            order.items = items;
+        }
+
         // Calculate summary
         const [summary] = await db.query(
             `SELECT 
@@ -60,3 +80,4 @@ exports.getCustomerHistory = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch customer history' });
     }
 };
+
