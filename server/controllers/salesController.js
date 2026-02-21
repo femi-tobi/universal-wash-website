@@ -7,7 +7,7 @@ exports.createSale = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const { customer_name, customer_phone, items, payment_status } = req.body;
+        const { customer_name, customer_phone, customer_address, items, payment_status } = req.body;
 
         // Validate input
         if (!customer_name || !customer_phone || !items || items.length === 0) {
@@ -23,15 +23,15 @@ exports.createSale = async (req, res) => {
         let customerId;
         if (customers.length > 0) {
             customerId = customers[0].id;
-            // Update customer name if it changed
+            // Update customer name and address if provided
             await connection.query(
-                'UPDATE customers SET name = ? WHERE id = ?',
-                [customer_name, customerId]
+                'UPDATE customers SET name = ?, address = COALESCE(?, address) WHERE id = ?',
+                [customer_name, customer_address || null, customerId]
             );
         } else {
             const [result] = await connection.query(
-                'INSERT INTO customers (name, phone) VALUES (?, ?)',
-                [customer_name, customer_phone]
+                'INSERT INTO customers (name, phone, address) VALUES (?, ?, ?)',
+                [customer_name, customer_phone, customer_address || null]
             );
             customerId = result.insertId;
         }
@@ -102,7 +102,7 @@ exports.getSaleDetails = async (req, res) => {
 
         // Get sale info
         const [sales] = await db.query(
-            `SELECT s.*, c.name as customer_name, c.phone as customer_phone, u.full_name as staff_name
+            `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, u.full_name as staff_name
             FROM sales s
             JOIN customers c ON s.customer_id = c.id
             JOIN users u ON s.staff_id = u.id

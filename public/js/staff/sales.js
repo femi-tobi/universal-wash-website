@@ -6,6 +6,7 @@ let PRICE_LIST = { male: [], female: [] };
 let BULK_DISCOUNTS = [];
 
 const SERVICE_TYPES = ['Hanging', 'Pressing', 'Express'];
+const SERVICE_ICONS = ['👔', '♨️', '⚡'];
 
 // ─── Load price list from server ─────────────────────────────────────────────
 async function loadPricelist() {
@@ -34,17 +35,36 @@ function buildItemOptions(gender, serviceTypeIndex) {
     return opts;
 }
 
-// ─── Refresh all item dropdowns when gender/service type changes ──────────────
-function refreshAllItemDropdowns() {
+// ─── Refresh a single row's dropdown when its service type changes ─────────────
+function refreshItemDropdown(itemId) {
     const gender = document.getElementById('globalGender')?.value || 'male';
-    const serviceTypeIndex = parseInt(document.getElementById('globalServiceType')?.value ?? '0');
+    const svcInput = document.querySelector(`.item-service-type[data-item="${itemId}"]`);
+    const serviceTypeIndex = parseInt(svcInput?.value ?? '0');
+    const select = document.querySelector(`.item-select[data-item="${itemId}"]`);
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = buildItemOptions(gender, serviceTypeIndex);
+    if (currentVal) select.value = currentVal;
+    select.dispatchEvent(new Event('change'));
+}
 
+// ─── Refresh all rows when gender changes ─────────────────────────────────────
+function refreshAllItemDropdowns() {
     document.querySelectorAll('.item-select').forEach(select => {
-        const currentVal = select.value;
-        select.innerHTML = buildItemOptions(gender, serviceTypeIndex);
-        if (currentVal) select.value = currentVal;
-        select.dispatchEvent(new Event('change'));
+        refreshItemDropdown(select.dataset.item);
     });
+}
+
+// ─── Select per-item service type ─────────────────────────────────────────────
+function selectItemService(itemId, index) {
+    const hiddenInput = document.querySelector(`.item-service-type[data-item="${itemId}"]`);
+    if (hiddenInput) hiddenInput.value = index;
+
+    document.querySelectorAll(`.svc-pill[data-item="${itemId}"]`).forEach(pill => {
+        pill.classList.toggle('active', parseInt(pill.dataset.svc) === index);
+    });
+
+    refreshItemDropdown(itemId);
 }
 
 // ─── Add item row ─────────────────────────────────────────────────────────────
@@ -52,7 +72,7 @@ function addItemRow() {
     itemCounter++;
     const container = document.getElementById('itemsContainer');
     const gender = document.getElementById('globalGender')?.value || 'male';
-    const serviceTypeIndex = parseInt(document.getElementById('globalServiceType')?.value ?? '0');
+    const defaultSvc = 0; // Hanging by default
 
     const row = document.createElement('div');
     row.className = 'card';
@@ -60,22 +80,38 @@ function addItemRow() {
     row.style.background = '#f8fafc';
     row.style.marginBottom = '16px';
 
+    const pillsHtml = SERVICE_TYPES.map((name, i) => `
+        <button type="button"
+            class="svc-pill${i === defaultSvc ? ' active' : ''}"
+            data-item="${itemCounter}"
+            data-svc="${i}"
+            onclick="selectItemService(${itemCounter}, ${i})">
+            ${SERVICE_ICONS[i]} ${name}
+        </button>
+    `).join('');
+
     row.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0;">Item #${itemCounter}</h3>
-            <button type="button" class="btn btn-danger" onclick="removeItem(${itemCounter})" style="min-height: auto; padding: 8px 16px; font-size: 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin:0;">Item #${itemCounter}</h3>
+            <button type="button" class="btn btn-danger" onclick="removeItem(${itemCounter})"
+                style="min-height:auto;padding:8px 16px;font-size:14px;">
                 🗑️ Remove
             </button>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Service Type *</label>
+            <div class="svc-pill-group">${pillsHtml}</div>
+            <input type="hidden" class="item-service-type" data-item="${itemCounter}" value="${defaultSvc}">
         </div>
 
         <div class="grid grid-2">
             <div class="form-group">
                 <label>Clothing Item *</label>
                 <select class="item-select" data-item="${itemCounter}" required>
-                    ${buildItemOptions(gender, serviceTypeIndex)}
+                    ${buildItemOptions(gender, defaultSvc)}
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Quantity *</label>
                 <input type="number" class="quantity" data-item="${itemCounter}" min="1" value="1" required>
@@ -85,7 +121,7 @@ function addItemRow() {
         <div class="form-group">
             <label>Subtotal</label>
             <input type="text" class="subtotal" data-item="${itemCounter}" readonly
-                style="background: #e2e8f0; font-weight: 700; font-size: 18px;" value="NGN 0">
+                style="background:#e2e8f0;font-weight:700;font-size:18px;" value="NGN 0">
         </div>
     `;
 
@@ -123,12 +159,10 @@ function calculateTotal() {
     document.querySelectorAll('.subtotal').forEach(input => {
         rawTotal += parseFloat(input.value.replace('NGN ', '').replace(/,/g, '')) || 0;
     });
-
     document.querySelectorAll('.quantity').forEach(input => {
         totalQty += parseInt(input.value) || 0;
     });
 
-    // Determine applicable bulk discount
     let discountPct = 0;
     let discountLabel = '';
     const sorted = [...BULK_DISCOUNTS].sort((a, b) => b.threshold - a.threshold);
@@ -143,15 +177,14 @@ function calculateTotal() {
     const discountAmount = rawTotal * (discountPct / 100);
     const finalTotal = rawTotal - discountAmount;
 
-    const totalEl = document.getElementById('totalAmount');
+    document.getElementById('totalAmount').textContent =
+        `NGN ${finalTotal.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`;
+
     const discountEl = document.getElementById('discountInfo');
-
-    totalEl.textContent = `NGN ${finalTotal.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`;
-
     if (discountEl) {
         if (discountPct > 0) {
             discountEl.innerHTML = `
-                <span style="color:#16a34a; font-weight:700;">
+                <span style="color:#16a34a;font-weight:700;">
                     🎉 ${discountLabel} — ${discountPct}% off applied!
                     (Saved NGN ${discountAmount.toLocaleString('en-NG', { minimumFractionDigits: 0 })})
                 </span>`;
@@ -161,7 +194,6 @@ function calculateTotal() {
         }
     }
 
-    // Store for form submission
     window._saleDiscount = { pct: discountPct, amount: discountAmount, qty: totalQty };
 }
 
@@ -171,10 +203,9 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
 
     const customerName = document.getElementById('customerName').value.trim();
     const customerPhone = document.getElementById('customerPhone').value.trim();
+    const customerAddress = document.getElementById('customerAddress').value.trim();
     const paymentStatus = document.getElementById('paymentStatus').value;
     const gender = document.getElementById('globalGender').value;
-    const serviceTypeIndex = parseInt(document.getElementById('globalServiceType').value);
-    const serviceTypeName = SERVICE_TYPES[serviceTypeIndex];
 
     const items = [];
     document.querySelectorAll('.item-select').forEach(select => {
@@ -182,11 +213,15 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
         const selectedOption = select.options[select.selectedIndex];
         if (!select.value || !selectedOption) return;
 
+        // Read this row's own service type
+        const svcInput = document.querySelector(`.item-service-type[data-item="${itemId}"]`);
+        const svcIndex = parseInt(svcInput?.value ?? '0');
+        const serviceTypeName = SERVICE_TYPES[svcIndex];
+
         const itemName = selectedOption.text.split(' —')[0];
         const unitPrice = parseFloat(selectedOption.dataset.price) || 0;
         const quantity = parseInt(document.querySelector(`.quantity[data-item="${itemId}"]`).value) || 1;
 
-        // Apply discount proportionally
         const discountPct = window._saleDiscount?.pct || 0;
         const discountedUnit = unitPrice * (1 - discountPct / 100);
         const subtotal = discountedUnit * quantity;
@@ -212,6 +247,7 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
             body: JSON.stringify({
                 customer_name: customerName,
                 customer_phone: customerPhone,
+                customer_address: customerAddress || null,
                 items,
                 payment_status: paymentStatus
             })
@@ -242,6 +278,9 @@ document.getElementById('customerPhone')?.addEventListener('blur', async functio
         const existing = customers.find(c => c.phone === phone);
         if (existing) {
             document.getElementById('customerName').value = existing.name;
+            if (existing.address) {
+                document.getElementById('customerAddress').value = existing.address;
+            }
             showAlert(`Customer found: ${existing.name}`, 'success');
         }
     } catch (error) {
