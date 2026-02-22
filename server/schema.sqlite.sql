@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     phone TEXT NOT NULL UNIQUE,
+    address TEXT DEFAULT NULL,
     created_at TEXT DEFAULT (datetime('now'))
 );
 
