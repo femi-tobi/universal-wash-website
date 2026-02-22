@@ -128,7 +128,7 @@ exports.getGarmentStats = async (req, res) => {
             `SELECT COALESCE(SUM(si.quantity), 0) AS today_count
              FROM sale_items si
              JOIN sales s ON si.sale_id = s.id
-             WHERE DATE(s.created_at) = DATE('now')`
+             WHERE DATE(s.created_at) = CURDATE()`
         );
 
         // This week's garment count
@@ -136,7 +136,7 @@ exports.getGarmentStats = async (req, res) => {
             `SELECT COALESCE(SUM(si.quantity), 0) AS week_count
              FROM sale_items si
              JOIN sales s ON si.sale_id = s.id
-             WHERE s.created_at >= DATE('now', '-7 days')`
+             WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)`
         );
 
         // This month's garment count
@@ -144,7 +144,8 @@ exports.getGarmentStats = async (req, res) => {
             `SELECT COALESCE(SUM(si.quantity), 0) AS month_count
              FROM sale_items si
              JOIN sales s ON si.sale_id = s.id
-             WHERE strftime('%Y-%m', s.created_at) = strftime('%Y-%m', 'now')`
+             WHERE MONTH(s.created_at) = MONTH(CURDATE())
+             AND YEAR(s.created_at) = YEAR(CURDATE())`
         );
 
         // Per-service breakdown (last 30 days)
@@ -155,7 +156,7 @@ exports.getGarmentStats = async (req, res) => {
              FROM sale_items si
              JOIN services srv ON si.service_id = srv.id
              JOIN sales s ON si.sale_id = s.id
-             WHERE s.created_at >= DATE('now', '-30 days')
+             WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
              GROUP BY srv.id, srv.name
              ORDER BY total_items DESC`
         );

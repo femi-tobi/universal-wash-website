@@ -840,8 +840,8 @@
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
         });
         // Set user
-        const user = getCurrentUser();
-        const name = user?.full_name || 'Admin';
+        const currentUser = getCurrentUser();
+        const name = currentUser?.full_name || 'Admin';
         document.getElementById('adminName').textContent = name;
         document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
     </script>
