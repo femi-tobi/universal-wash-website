@@ -10,8 +10,15 @@ const db = {};
 async function initializeDatabase() {
 
     // ── Try PostgreSQL first (Render / hosted) ────────────────────────────────
-    const databaseUrl = process.env.DATABASE_URL;
+    // Render may inject the URL under DATABASE_URL or a prefixed name like
+    // LAUNDRY_DB_DLMF_DATABASE_URL when you use "Link a Database".
+    // Scan ALL env vars for any postgres:// / postgresql:// connection string.
+    const databaseUrl = Object.values(process.env).find(
+        v => typeof v === 'string' && (v.startsWith('postgres://') || v.startsWith('postgresql://'))
+    ) || null;
     const dbType = (process.env.DB_TYPE || '').toLowerCase();
+
+    if (databaseUrl) console.log('  DATABASE_URL detected:', databaseUrl.replace(/:([^@]+)@/, ':****@'));
 
     if (databaseUrl || dbType === 'postgres' || dbType === 'postgresql') {
         try {
