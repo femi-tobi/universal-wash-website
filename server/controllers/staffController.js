@@ -84,7 +84,7 @@ exports.deleteStaff = async (req, res) => {
         const staffId = req.params.id;
 
         await db.query(
-            'UPDATE users SET is_active = 0 WHERE id = ?',
+            'UPDATE users SET is_active = false WHERE id = ?',
             [staffId]
         );
 

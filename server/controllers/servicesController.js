@@ -4,7 +4,7 @@ const db = require('../config/database');
 exports.getAllServices = async (req, res) => {
     try {
         const [services] = await db.query(
-            'SELECT * FROM services WHERE is_active = 1 ORDER BY name'
+            'SELECT * FROM services WHERE is_active IS NOT FALSE ORDER BY name'
         );
 
         res.json(services);
@@ -63,7 +63,7 @@ exports.deleteService = async (req, res) => {
         const serviceId = req.params.id;
 
         await db.query(
-            'UPDATE services SET is_active = 0 WHERE id = ?',
+            'UPDATE services SET is_active = false WHERE id = ?',
             [serviceId]
         );
 
