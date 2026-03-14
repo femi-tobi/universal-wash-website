@@ -113,7 +113,7 @@
                     det.id = 'items-' + sale.id;
                     det.style.display = 'none';
                     det.innerHTML = `<td colspan="6" style="padding:8px;background:#fafafa">
-                        ${renderItemsHtml(sale.items || [])}
+                        ${renderItemsHtml(sale.items || [], sale.id)}
                     </td>`;
                     tbody.appendChild(det);
                 });
@@ -124,16 +124,67 @@
             }
         }
 
-        function renderItemsHtml(items) {
+        function renderItemsHtml(items, saleId) {
             if (!items || items.length === 0) return '<div style="color:#666">No items recorded.</div>';
             let html = '<table style="width:100%;font-size:13px;border-collapse:collapse">';
             html += '<thead><tr style="text-align:left"><th>Item</th><th>Service</th><th>Qty</th><th style="text-align:right">Amount</th></tr></thead>';
             html += '<tbody>';
             items.forEach(it => {
-                html += `<tr><td style="padding:6px 8px">${(it.item_type||'').toUpperCase()}${it.description?'<div style="font-size:12px;color:#666;margin-top:4px">'+escapeHtml(it.description)+'</div>':''}</td><td style="padding:6px 8px">${it.service_name||''}</td><td style="padding:6px 8px">${it.quantity||1}</td><td style="padding:6px 8px;text-align:right">${Number(it.subtotal||0).toLocaleString()}</td></tr>`;
+                html += `<tr>
+                    <td style="padding:6px 8px">
+                        ${(it.item_type||'').toUpperCase()}
+                        <div id="desc-${it.id}" style="font-size:12px;color:#666;margin-top:4px">${it.description?escapeHtml(it.description):'<span style=\"color:#999\">(no description)</span>'}</div>
+                        <div style="margin-top:6px"><button class="btn btn-xs" onclick="startEditDesc(${it.id}, ${saleId})">Edit</button></div>
+                    </td>
+                    <td style="padding:6px 8px">${it.service_name||''}</td>
+                    <td style="padding:6px 8px">${it.quantity||1}</td>
+                    <td style="padding:6px 8px;text-align:right">${Number(it.subtotal||0).toLocaleString()}</td>
+                </tr>`;
             });
             html += '</tbody></table>';
             return html;
+        }
+
+        // Inline edit handlers for item descriptions
+        function startEditDesc(itemId, saleId) {
+            const container = document.getElementById('desc-' + itemId);
+            if (!container) return;
+            const current = container.textContent === '(no description)' ? '' : container.textContent;
+            container.innerHTML = `<textarea id="ta-${itemId}" style="width:100%;min-height:60px">${escapeHtml(current)}</textarea>
+                <div style="margin-top:6px">
+                    <button class="btn btn-sm" onclick="saveDesc(${itemId}, ${saleId})">Save</button>
+                    <button class="btn btn-secondary" onclick="cancelEditDesc(${itemId}, ${saleId})">Cancel</button>
+                </div>`;
+        }
+
+        async function saveDesc(itemId, saleId) {
+            const ta = document.getElementById('ta-' + itemId);
+            if (!ta) return;
+            const newDesc = ta.value.trim();
+            try {
+                const res = await fetch('/api/sale_items/' + itemId, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ description: newDesc })
+                });
+                const j = await res.json();
+                if (!res.ok) throw new Error(j.error || 'Failed to save');
+                const container = document.getElementById('desc-' + itemId);
+                container.innerHTML = newDesc ? escapeHtml(newDesc) : '<span style="color:#999">(no description)</span>';
+            } catch (err) {
+                console.error('Save failed', err);
+                alert('Failed to save description: ' + (err.message || 'server error'));
+            }
+        }
+
+        function cancelEditDesc(itemId, saleId) {
+            // reload the sale row to restore original (simple approach: toggle items off/on)
+            const det = document.getElementById('items-' + saleId);
+            if (!det) return;
+            // toggle to force re-render by reloading report
+            det.style.display = 'none';
+            // reload the whole report to preserve consistency
+            loadDailyReport();
         }
 
         function escapeHtml(str) {

@@ -7,8 +7,8 @@ exports.getAllStaff = async (req, res) => {
         // Build a safe SELECT column list based on actual table columns (works for SQLite)
         let cols = ['id','username','full_name','role','is_active','created_at'];
         try {
-            if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('users')");
+                if (db.type === 'sqlite') {
+                const [info] = await db.query("SELECT * FROM pragma_table_info('users')");
                 const names = (info || []).map(r => r.name);
                 if (names.includes('address')) cols.splice(5,0,'address'); // insert before created_at
                 if (names.includes('phone')) cols.splice(6,0,'phone');
@@ -48,8 +48,8 @@ exports.addStaff = async (req, res) => {
         let params = [username, hashedPassword, full_name, role];
 
         try {
-            if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('users')");
+                if (db.type === 'sqlite') {
+                const [info] = await db.query("SELECT * FROM pragma_table_info('users')");
                 const names = (info || []).map(r => r.name);
                 if (names.includes('address')) {
                     cols.push('address'); placeholders.push('?'); params.push(address || null);
@@ -143,7 +143,7 @@ exports.getStaffById = async (req, res) => {
         let cols = ['id','username','full_name','role','is_active','created_at'];
         try {
             if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('users')");
+                const [info] = await db.query("SELECT * FROM pragma_table_info('users')");
                 const names = (info || []).map(r => r.name);
                 if (names.includes('address')) cols.splice(5,0,'address');
                 if (names.includes('phone')) cols.splice(6,0,'phone');
@@ -164,9 +164,23 @@ exports.getStaffById = async (req, res) => {
 exports.getMySalesByDay = async (req, res) => {
     try {
         const staffId = req.user.id;
-        // Try to include payment_method if the column exists; if not, fall back to a query without it
+        // Determine if payment_method column exists to build a safe SELECT
         let sales;
+        let hasPaymentMethod = false;
         try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
+                const names = (info || []).map(r => r.name);
+                hasPaymentMethod = names.includes('payment_method');
+            } else {
+                // assume other DBs have the column
+                hasPaymentMethod = true;
+            }
+        } catch (e) {
+            hasPaymentMethod = false;
+        }
+
+        if (hasPaymentMethod) {
             [sales] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s
@@ -175,8 +189,7 @@ exports.getMySalesByDay = async (req, res) => {
                  ORDER BY s.created_at DESC`,
                 [staffId]
             );
-        } catch (err) {
-            // fallback for DBs that don't have payment_method column
+        } else {
             const [rows] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s
@@ -209,7 +222,18 @@ exports.getMySalesByWeek = async (req, res) => {
     try {
         const staffId = req.user.id;
         let salesW;
+        let hasPaymentMethodW = false;
         try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
+                const names = (info || []).map(r => r.name);
+                hasPaymentMethodW = names.includes('payment_method');
+            } else {
+                hasPaymentMethodW = true;
+            }
+        } catch (e) { hasPaymentMethodW = false; }
+
+        if (hasPaymentMethodW) {
             [salesW] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s
@@ -218,7 +242,7 @@ exports.getMySalesByWeek = async (req, res) => {
                  ORDER BY s.created_at DESC`,
                 [staffId]
             );
-        } catch (err) {
+        } else {
             const [rows] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s
@@ -245,7 +269,18 @@ exports.getMySalesByMonth = async (req, res) => {
     try {
         const staffId = req.user.id;
         let salesM;
+        let hasPaymentMethodM = false;
         try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
+                const names = (info || []).map(r => r.name);
+                hasPaymentMethodM = names.includes('payment_method');
+            } else {
+                hasPaymentMethodM = true;
+            }
+        } catch (e) { hasPaymentMethodM = false; }
+
+        if (hasPaymentMethodM) {
             [salesM] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s
@@ -254,7 +289,7 @@ exports.getMySalesByMonth = async (req, res) => {
                  ORDER BY s.created_at DESC`,
                 [staffId]
             );
-        } catch (err) {
+        } else {
             const [rows] = await db.query(
                 `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
                  FROM sales s

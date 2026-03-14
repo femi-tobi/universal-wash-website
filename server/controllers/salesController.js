@@ -49,7 +49,7 @@ exports.createSale = async (req, res) => {
         let hasPaymentMethod = false;
         try {
             if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('sales')");
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
                 const names = (info || []).map(r => r.name);
                 hasPaymentMethod = names.includes('payment_method');
             } else {
@@ -79,12 +79,22 @@ exports.createSale = async (req, res) => {
         let hasDescriptionCol = false;
         try {
             if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('sale_items')");
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sale_items')");
                 const names = (info || []).map(r => r.name);
                 hasDescriptionCol = names.includes('description');
+            } else if (db.type === 'postgres') {
+                const [rows] = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'sale_items' AND column_name = 'description'");
+                hasDescriptionCol = (rows || []).length > 0;
+            } else if (db.type === 'mysql') {
+                const [rows] = await db.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'sale_items' AND COLUMN_NAME = 'description' AND TABLE_SCHEMA = DATABASE()");
+                hasDescriptionCol = (rows || []).length > 0;
+            } else {
+                // conservative default: assume column exists
+                hasDescriptionCol = true;
             }
         } catch (e) {
             // ignore and assume no description column
+            hasDescriptionCol = false;
         }
 
         for (const item of items) {
@@ -205,7 +215,7 @@ exports.updatePaymentStatus = async (req, res) => {
         // Try to update payment_method if column exists; fall back if not
         try {
             if (db.type === 'sqlite') {
-                const [info] = await db.query("PRAGMA table_info('sales')");
+                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
                 const names = (info || []).map(r => r.name);
                 if (names.includes('payment_method')) {
                     await db.query('UPDATE sales SET payment_status = ?, payment_date = ?, payment_method = ? WHERE id = ?', [payment_status, paymentDate, payment_method || null, saleId]);

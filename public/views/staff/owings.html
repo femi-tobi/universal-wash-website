@@ -821,17 +821,15 @@
             btn.disabled = true;
             btn.textContent = 'Updating…';
             try {
-                    // Ask for payment method
-                    let method = prompt('Payment method (cash / pos / transfer)', 'cash');
-                    if (method === null) { btn.disabled = false; btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Mark as Paid`; return; }
-                    method = (method || '').trim().toLowerCase();
-                    if (!['cash','pos','transfer'].includes(method)) method = 'cash';
+                            // Ask for payment method via dropdown modal (better UX than prompt)
+                            const method = await showPaymentMethodDialog('cash');
+                            if (method === null) { btn.disabled = false; btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Mark as Paid`; return; }
 
-                    const res = await fetch(`/api/sales/${saleId}/payment`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                        body: JSON.stringify({ payment_status: 'paid', payment_method: method })
-                    });
+                            const res = await fetch(`/api/sales/${saleId}/payment`, {
+                                method: 'PUT',
+                                headers: getAuthHeaders(),
+                                body: JSON.stringify({ payment_status: 'paid', payment_method: method })
+                            });
                 if (!res.ok) throw new Error('Failed');
                 const row = document.getElementById(`row-${saleId}`);
                 row.style.transition = 'opacity 0.4s, transform 0.4s';

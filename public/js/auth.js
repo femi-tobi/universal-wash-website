@@ -87,3 +87,56 @@ function showAlert(message, type = 'error') {
         }, 5000);
     }
 }
+
+// Small modal dialog to pick payment method. Returns the selected method ('cash'|'pos'|'transfer') or null if cancelled.
+function showPaymentMethodDialog(defaultMethod = 'cash') {
+    return new Promise((resolve) => {
+        // create overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.left = 0;
+        overlay.style.top = 0;
+        overlay.style.right = 0;
+        overlay.style.bottom = 0;
+        overlay.style.background = 'rgba(0,0,0,0.4)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = 9999;
+
+        const box = document.createElement('div');
+        box.style.background = '#fff';
+        box.style.padding = '18px';
+        box.style.borderRadius = '8px';
+        box.style.minWidth = '280px';
+        box.style.boxShadow = '0 6px 24px rgba(0,0,0,0.2)';
+
+        box.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Select payment method</div>
+            <select id="_pm_select" style="width:100%;padding:8px;margin-bottom:12px">
+                <option value="cash">Cash</option>
+                <option value="pos">POS</option>
+                <option value="transfer">Transfer</option>
+            </select>
+            <div style="text-align:right">
+                <button id="_pm_cancel" class="btn btn-secondary" style="margin-right:8px">Cancel</button>
+                <button id="_pm_ok" class="btn btn-primary">OK</button>
+            </div>`;
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        const select = box.querySelector('#_pm_select');
+        select.value = defaultMethod || 'cash';
+        const cleanup = (val) => { document.body.removeChild(overlay); resolve(val); };
+
+        box.querySelector('#_pm_cancel').addEventListener('click', () => cleanup(null));
+        box.querySelector('#_pm_ok').addEventListener('click', () => cleanup(select.value));
+
+        // keyboard support
+        overlay.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape') cleanup(null);
+            if (ev.key === 'Enter') cleanup(select.value);
+        });
+        select.focus();
+    });
+}

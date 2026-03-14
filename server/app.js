@@ -17,6 +17,7 @@ const salesRoutes = require('./routes/sales');
 const servicesRoutes = require('./routes/services');
 const dashboardRoutes = require('./routes/dashboard');
 const staffRoutes = require('./routes/staff');
+const saleItemsRoutes = require('./routes/saleItems');
 const customersRoutes = require('./routes/customers');
 const pricelistRoutes = require('./routes/pricelist');
 
@@ -28,6 +29,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/pricelist', pricelistRoutes);
+app.use('/api/sale_items', saleItemsRoutes);
 
 // Serve HTML pages
 app.get('/', (req, res) => {

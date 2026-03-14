@@ -218,6 +218,7 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
     const customerAddress = document.getElementById('customerAddress').value.trim();
     const paymentStatus = document.getElementById('paymentStatus').value;
     const gender = document.getElementById('globalGender').value;
+    const paymentMethod = document.getElementById('paymentMethod') ? document.getElementById('paymentMethod').value : null;
 
     const items = [];
     document.querySelectorAll('.item-select').forEach(select => {
@@ -265,7 +266,8 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
                 customer_phone: customerPhone,
                 customer_address: customerAddress || null,
                 items,
-                payment_status: paymentStatus
+                payment_status: paymentStatus,
+                payment_method: paymentStatus === 'paid' ? (paymentMethod || null) : null
             })
         });
 
@@ -306,3 +308,16 @@ document.getElementById('customerPhone')?.addEventListener('blur', async functio
 
 // ─── Initialize ───────────────────────────────────────────────────────────────
 loadPricelist();
+
+// Show/hide payment method selector based on payment status
+const paymentStatusEl = document.getElementById('paymentStatus');
+function updatePaymentMethodVisibility() {
+    const group = document.getElementById('paymentMethodGroup');
+    if (!group || !paymentStatusEl) return;
+    group.style.display = paymentStatusEl.value === 'paid' ? '' : 'none';
+}
+if (paymentStatusEl) {
+    paymentStatusEl.addEventListener('change', updatePaymentMethodVisibility);
+    // initialize
+    updatePaymentMethodVisibility();
+}
