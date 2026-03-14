@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Report - Laundry Management</title>
+    <title>Monthly Report - Laundry Management</title>
     <link rel="stylesheet" href="/css/main.css">
 </head>
 
 <body>
     <div class="header">
-        <h1>📊 Daily Sales Report</h1>
+        <h1>📊 Monthly Sales Report</h1>
         <div class="user-info">
             <a href="dashboard.html"><button class="btn btn-secondary">← Back</button></a>
             <button class="btn btn-secondary" onclick="logout()">Logout</button>
@@ -35,13 +35,13 @@
         </div>
 
         <div class="card">
-            <h2 class="text-center">Today: <span id="todayDate"></span></h2>
+            <h2 class="text-center">This Month</h2>
 
             <div style="margin-top:18px;">
                 <table style="width:100%;border-collapse:collapse;font-size:14px" id="salesTable">
                     <thead>
                         <tr style="text-align:left;border-bottom:1px solid #ddd">
-                            <th style="padding:8px;">Time</th>
+                            <th style="padding:8px;">Date</th>
                             <th style="padding:8px;">Slip</th>
                             <th style="padding:8px;">Customer</th>
                             <th style="padding:8px;text-align:right">Total</th>
@@ -61,24 +61,15 @@
     <script>
         checkAuth();
 
-        // Display today's date
-        const today = new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        document.getElementById('todayDate').textContent = today;
-
-        // Load daily stats + transaction list
-        async function loadDailyReport() {
+        async function loadMonthlyReport() {
             try {
-                // staff-specific full list with items
-                const res = await fetch('/api/staff/me/sales/daily', { headers: getAuthHeaders() });
+                // staff list
+                const res = await fetch('/api/staff/me/sales/monthly', { headers: getAuthHeaders() });
                 if (!res.ok) throw new Error('Failed to fetch sales');
                 const payload = await res.json();
                 const sales = payload.sales || [];
-                // derive simple summary from the sales data
+
+                // compute summary from staff data
                 let paid = 0, unpaid = 0;
                 sales.forEach(s => { if (s.payment_status === 'paid') paid += Number(s.total_amount||0); else unpaid += Number(s.total_amount||0); });
                 document.getElementById('totalSales').textContent = sales.length || 0;
@@ -88,15 +79,15 @@
                 const tbody = document.getElementById('salesBody');
                 tbody.innerHTML = '';
                 if (sales.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#666">No sales for today.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#666">No sales for this month.</td></tr>';
                 }
 
                 sales.forEach(sale => {
                     const tr = document.createElement('tr');
                     const d = new Date(sale.created_at);
-                    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                    const date = d.toLocaleDateString('en-GB');
                     tr.innerHTML = `
-                        <td style="padding:8px;vertical-align:top">${time}</td>
+                        <td style="padding:8px;vertical-align:top">${date} ${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
                         <td style="padding:8px;vertical-align:top">#${String(sale.id).padStart(8,'0')}</td>
                         <td style="padding:8px;vertical-align:top">${sale.customer_name || 'Walk-in'}</td>
                         <td style="padding:8px;text-align:right;vertical-align:top">${Number(sale.total_amount).toLocaleString()}</td>
@@ -108,13 +99,10 @@
                     `;
                     tbody.appendChild(tr);
 
-                    // item details row (hidden)
                     const det = document.createElement('tr');
                     det.id = 'items-' + sale.id;
                     det.style.display = 'none';
-                    det.innerHTML = `<td colspan="6" style="padding:8px;background:#fafafa">
-                        ${renderItemsHtml(sale.items || [])}
-                    </td>`;
+                    det.innerHTML = `<td colspan="6" style="padding:8px;background:#fafafa">${renderItemsHtml(sale.items || [])}</td>`;
                     tbody.appendChild(det);
                 });
 
@@ -147,7 +135,7 @@
             el.style.display = el.style.display === 'none' ? '' : 'none';
         }
 
-        loadDailyReport();
+        loadMonthlyReport();
     </script>
 </body>
 

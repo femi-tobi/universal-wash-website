@@ -9,6 +9,11 @@ const roleCheck = require('../middleware/roleCheck');
 router.use(authMiddleware);
 
 // Admin-only routes
+// Staff self-service report endpoints (requires auth)
+router.get('/me/sales/daily', staffController.getMySalesByDay);
+router.get('/me/sales/weekly', staffController.getMySalesByWeek);
+router.get('/me/sales/monthly', staffController.getMySalesByMonth);
+
 router.get('/', roleCheck('admin'), staffController.getAllStaff);
 router.post('/', roleCheck('admin'), staffController.addStaff);
 router.delete('/:id', roleCheck('admin'), staffController.deleteStaff);
