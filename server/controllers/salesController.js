@@ -121,7 +121,13 @@ exports.createSale = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error('Create sale error:', error);
-        res.status(500).json({ error: 'Failed to create sale' });
+        const resp = { error: 'Failed to create sale' };
+        // When DEBUG=true in env, return the server error message to help debugging (safe for dev only)
+        if (process.env.DEBUG === 'true') {
+            resp.server_error = error.message;
+            resp.stack = error.stack;
+        }
+        res.status(500).json(resp);
     } finally {
         connection.release();
     }
