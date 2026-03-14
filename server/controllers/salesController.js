@@ -1,5 +1,25 @@
 const db = require('../config/database');
 
+// Helper: check whether a table has a given column across DBs
+async function hasColumn(table, column) {
+    try {
+        if (db.type === 'sqlite') {
+            const [info] = await db.query(`SELECT * FROM pragma_table_info('${table}')`);
+            const names = (info || []).map(r => r.name);
+            return names.includes(column);
+        }
+        if (db.type === 'postgres') {
+            const [rows] = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND column_name = $2", [table, column]);
+            return (rows || []).length > 0;
+        }
+        // mysql / mysql2
+        const [rows] = await db.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ? AND TABLE_SCHEMA = DATABASE()", [table, column]);
+        return (rows || []).length > 0;
+    } catch (e) {
+        return false;
+    }
+}
+
 // Create new sale with items
 exports.createSale = async (req, res) => {
     const connection = await db.getConnection();
@@ -53,19 +73,12 @@ exports.createSale = async (req, res) => {
         // Create sale
         const paymentDate = payment_status === 'paid' ? new Date().toISOString() : null;
 
-        // Detect whether sales.payment_method column exists (SQLite defensive)
+        // Detect whether sales.payment_method column exists
         let hasPaymentMethod = false;
         try {
-            if (db.type === 'sqlite') {
-                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
-                const names = (info || []).map(r => r.name);
-                hasPaymentMethod = names.includes('payment_method');
-            } else {
-                // assume other DBs have the column if migrations ran
-                hasPaymentMethod = true;
-            }
+            hasPaymentMethod = await hasColumn('sales', 'payment_method');
         } catch (e) {
-            // ignore
+            hasPaymentMethod = false;
         }
 
         let saleResult;
@@ -167,29 +180,34 @@ exports.getSaleDetails = async (req, res) => {
         const saleId = req.params.id;
 
         // Get sale info
-            // Try to include staff address/phone if users table has those columns; otherwise fallback to simpler select
-            let sales;
-            try {
-                [sales] = await db.query(
-                    `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
-                            u.full_name as staff_name, u.address as staff_address, u.phone as staff_phone
+        // Build a safe SELECT that only references user.address / user.phone if those columns exist in the DB
+        let sales;
+        try {
+            const hasUserAddress = await hasColumn('users', 'address');
+            const hasUserPhone = await hasColumn('users', 'phone');
+
+            let userCols = 'u.full_name as staff_name';
+            if (hasUserAddress) userCols += ', u.address as staff_address';
+            if (hasUserPhone) userCols += ', u.phone as staff_phone';
+
+            const sql = `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, ${userCols}
                     FROM sales s
                     JOIN customers c ON s.customer_id = c.id
                     JOIN users u ON s.staff_id = u.id
-                    WHERE s.id = ?`,
-                    [saleId]
-                );
-            } catch (err) {
-                const [rows] = await db.query(
-                    `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, u.full_name as staff_name
+                    WHERE s.id = ?`;
+            const [rows] = await db.query(sql, [saleId]);
+            sales = rows;
+        } catch (err) {
+            // Fallback to a minimal select if anything goes wrong
+            const [rows] = await db.query(
+                `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address
                     FROM sales s
                     JOIN customers c ON s.customer_id = c.id
-                    JOIN users u ON s.staff_id = u.id
                     WHERE s.id = ?`,
-                    [saleId]
-                );
-                sales = rows;
-            }
+                [saleId]
+            );
+            sales = rows;
+        }
 
         if (sales.length === 0) {
             return res.status(404).json({ error: 'Sale not found' });
@@ -228,17 +246,11 @@ exports.updatePaymentStatus = async (req, res) => {
 
         // Try to update payment_method if column exists; fall back if not
         try {
-            if (db.type === 'sqlite') {
-                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
-                const names = (info || []).map(r => r.name);
-                if (names.includes('payment_method')) {
-                    await db.query('UPDATE sales SET payment_status = ?, payment_date = ?, payment_method = ? WHERE id = ?', [payment_status, paymentDate, payment_method || null, saleId]);
-                } else {
-                    await db.query('UPDATE sales SET payment_status = ?, payment_date = ? WHERE id = ?', [payment_status, paymentDate, saleId]);
-                }
-            } else {
-                // Postgres/MySQL: assume column exists
+            const hasPaymentMethodCol = await hasColumn('sales', 'payment_method');
+            if (hasPaymentMethodCol) {
                 await db.query('UPDATE sales SET payment_status = ?, payment_date = ?, payment_method = ? WHERE id = ?', [payment_status, paymentDate, payment_method || null, saleId]);
+            } else {
+                await db.query('UPDATE sales SET payment_status = ?, payment_date = ? WHERE id = ?', [payment_status, paymentDate, saleId]);
             }
         } catch (e) {
             // fallback to basic update
