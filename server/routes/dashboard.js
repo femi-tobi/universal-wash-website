@@ -19,5 +19,6 @@ router.get('/sales/yearly', dashboardController.getSalesByYear);
 router.get('/sales/yearly/csv', dashboardController.exportSalesByYearCsv);
 router.get('/sales/weekly', dashboardController.getSalesByWeek);
 router.get('/sales/monthly', dashboardController.getSalesByMonth);
+router.get('/sales/daily', dashboardController.getSalesByDay);
 
 module.exports = router;

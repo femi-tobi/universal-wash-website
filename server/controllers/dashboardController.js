@@ -285,6 +285,35 @@ exports.getSalesByMonth = async (req, res) => {
     }
 };
 
+// Get sales for today (optionally filter by staff_id or service_id)
+exports.getSalesByDay = async (req, res) => {
+    try {
+        const filters = [];
+        const params = [];
+        let joinSaleItems = false;
+
+        if (req.query.staff_id) { filters.push('s.staff_id = ?'); params.push(req.query.staff_id); }
+        if (req.query.service_id) { joinSaleItems = true; filters.push('si.service_id = ?'); params.push(req.query.service_id); }
+
+        let whereSql = 'WHERE DATE(s.created_at) = CURDATE()';
+        if (filters.length) whereSql += ' AND ' + filters.join(' AND ');
+        const joinSql = joinSaleItems ? 'JOIN sale_items si ON si.sale_id = s.id' : '';
+
+        const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, u.full_name as staff_name, c.name as customer_name, c.phone as customer_phone
+                     FROM sales s
+                     LEFT JOIN customers c ON s.customer_id = c.id
+                     LEFT JOIN users u ON s.staff_id = u.id
+                     ${joinSql}
+                     ${whereSql}
+                     ORDER BY s.created_at DESC`;
+        const [rows] = await db.query(sql, params);
+        res.json({ sales: rows });
+    } catch (error) {
+        console.error('Get sales by day error:', error);
+        res.status(500).json({ error: 'Failed to fetch daily sales' });
+    }
+};
+
 // Get outstanding payments
 exports.getOutstandingPayments = async (req, res) => {
     try {
