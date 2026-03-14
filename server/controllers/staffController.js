@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 exports.getAllStaff = async (req, res) => {
     try {
         const [staff] = await db.query(
-            'SELECT id, username, full_name, role, is_active, created_at FROM users ORDER BY created_at DESC'
+            'SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users ORDER BY created_at DESC'
         );
 
         res.json(staff);
@@ -18,10 +18,10 @@ exports.getAllStaff = async (req, res) => {
 // Add new staff
 exports.addStaff = async (req, res) => {
     try {
-        const { username, password, full_name, role } = req.body;
+        const { username, password, full_name, role, address, phone } = req.body;
 
         if (!username || !password || !full_name || !role) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'All required fields are missing' });
         }
 
         if (!['admin', 'staff'].includes(role)) {
@@ -32,8 +32,8 @@ exports.addStaff = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const [result] = await db.query(
-            'INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)',
-            [username, hashedPassword, full_name, role]
+            'INSERT INTO users (username, password, full_name, role, address, phone) VALUES (?, ?, ?, ?, ?, ?)',
+            [username, hashedPassword, full_name, role, address || null, phone || null]
         );
 
         res.json({
@@ -54,19 +54,34 @@ exports.addStaff = async (req, res) => {
 exports.updateStaff = async (req, res) => {
     try {
         const staffId = req.params.id;
-        const { username, full_name, role, password } = req.body;
+        const actor = req.user; // from auth middleware
 
-        let query = 'UPDATE users SET username = ?, full_name = ?, role = ?';
-        let params = [username, full_name, role];
+        // Allow admin or the user themselves
+        if (actor.role !== 'admin' && Number(actor.id) !== Number(staffId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
 
-        // If password is provided, hash and update it
+        const { username, full_name, role, password, address, phone } = req.body;
+
+        // Build dynamic update
+        let updates = [];
+        let params = [];
+        if (username) { updates.push('username = ?'); params.push(username); }
+        if (full_name) { updates.push('full_name = ?'); params.push(full_name); }
+        if (role && actor.role === 'admin') { updates.push('role = ?'); params.push(role); }
+        if (typeof address !== 'undefined') { updates.push('address = ?'); params.push(address); }
+        if (typeof phone !== 'undefined') { updates.push('phone = ?'); params.push(phone); }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
-            query += ', password = ?';
+            updates.push('password = ?');
             params.push(hashedPassword);
         }
 
-        query += ' WHERE id = ?';
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        const query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
         params.push(staffId);
 
         await db.query(query, params);
@@ -75,6 +90,28 @@ exports.updateStaff = async (req, res) => {
     } catch (error) {
         console.error('Update staff error:', error);
         res.status(500).json({ error: 'Failed to update staff member' });
+    }
+};
+
+// Get one staff (admin can fetch any, a staff can fetch own)
+exports.getStaffById = async (req, res) => {
+    try {
+        const staffId = req.params.id;
+        const actor = req.user;
+
+        if (!actor) return res.status(401).json({ error: 'Auth required' });
+
+        if (actor.role !== 'admin' && Number(actor.id) !== Number(staffId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        const [rows] = await db.query('SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users WHERE id = ?', [staffId]);
+        if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Get staff by id error:', error);
+        res.status(500).json({ error: 'Failed to fetch staff' });
     }
 };
 

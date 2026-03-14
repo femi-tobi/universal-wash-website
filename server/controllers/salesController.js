@@ -102,7 +102,8 @@ exports.getSaleDetails = async (req, res) => {
 
         // Get sale info
         const [sales] = await db.query(
-            `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, u.full_name as staff_name
+            `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
+                    u.full_name as staff_name, u.address as staff_address, u.phone as staff_phone
             FROM sales s
             JOIN customers c ON s.customer_id = c.id
             JOIN users u ON s.staff_id = u.id

@@ -434,6 +434,14 @@
                     ? '<span class="badge">ACCEPTED</span>'
                     : '<span class="badge unpaid">PENDING</span>';
 
+                // Header business/branch info: if staff has address/phone, prefer those
+                if (sale.staff_address) {
+                    document.getElementById('bizAddress').innerHTML = sale.staff_address.replace(/\n/g,'<br>');
+                }
+                if (sale.staff_phone) {
+                    document.getElementById('bizPhone').textContent = sale.staff_phone;
+                }
+
                 // Customer
                 document.getElementById('custName').textContent = sale.customer_name || '—';
                 document.getElementById('custPhone').textContent = sale.customer_phone || '—';
