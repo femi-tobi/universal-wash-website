@@ -91,7 +91,7 @@
                         <td style="padding:8px;vertical-align:top">#${String(sale.id).padStart(8,'0')}</td>
                         <td style="padding:8px;vertical-align:top">${sale.customer_name || 'Walk-in'}</td>
                         <td style="padding:8px;text-align:right;vertical-align:top">${Number(sale.total_amount).toLocaleString()}</td>
-                        <td style="padding:8px;vertical-align:top">${sale.payment_status || '—'}</td>
+                        <td style="padding:8px;vertical-align:top">${sale.payment_status || '—'}${sale.payment_method ? ' ('+sale.payment_method.toUpperCase()+')' : ''}</td>
                         <td style="padding:8px;vertical-align:top">
                             <button onclick="toggleItems(${sale.id})" class="btn btn-sm">Items</button>
                             <a class="btn btn-sm" href="receipt.html?id=${sale.id}" target="_blank">Receipt</a>

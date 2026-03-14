@@ -163,10 +163,16 @@ async function markAsPaid(saleId) {
     if (!confirm('Mark this sale as paid?')) return;
 
     try {
+        // Ask for payment method
+        let method = prompt('Payment method (cash / pos / transfer)', 'cash');
+        if (method === null) return;
+        method = (method || '').trim().toLowerCase();
+        if (!['cash','pos','transfer'].includes(method)) method = 'cash';
+
         const response = await fetch(`/api/sales/${saleId}/payment`, {
             method: 'PUT',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ payment_status: 'paid' })
+            body: JSON.stringify({ payment_status: 'paid', payment_method: method })
         });
 
         if (response.ok) {

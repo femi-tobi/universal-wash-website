@@ -7,7 +7,7 @@ exports.createSale = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const { customer_name, customer_phone, customer_address, items, payment_status } = req.body;
+    const { customer_name, customer_phone, customer_address, items, payment_status, payment_method } = req.body;
 
         // Validate input
         if (!customer_name || !customer_phone || !items || items.length === 0) {
@@ -44,10 +44,35 @@ exports.createSale = async (req, res) => {
 
         // Create sale
         const paymentDate = payment_status === 'paid' ? new Date().toISOString() : null;
-        const [saleResult] = await connection.query(
-            'INSERT INTO sales (customer_id, staff_id, total_amount, payment_status, payment_date) VALUES (?, ?, ?, ?, ?)',
-            [customerId, req.user.id, totalAmount, payment_status, paymentDate]
-        );
+
+        // Detect whether sales.payment_method column exists (SQLite defensive)
+        let hasPaymentMethod = false;
+        try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('sales')");
+                const names = (info || []).map(r => r.name);
+                hasPaymentMethod = names.includes('payment_method');
+            } else {
+                // assume other DBs have the column if migrations ran
+                hasPaymentMethod = true;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        if (hasPaymentMethod) {
+            const [saleResult] = await connection.query(
+                'INSERT INTO sales (customer_id, staff_id, total_amount, payment_status, payment_date, payment_method) VALUES (?, ?, ?, ?, ?, ?)',
+                [customerId, req.user.id, totalAmount, payment_status, paymentDate, payment_method || null]
+            );
+            var saleId = saleResult.insertId;
+        } else {
+            const [saleResult] = await connection.query(
+                'INSERT INTO sales (customer_id, staff_id, total_amount, payment_status, payment_date) VALUES (?, ?, ?, ?, ?)',
+                [customerId, req.user.id, totalAmount, payment_status, paymentDate]
+            );
+            var saleId = saleResult.insertId;
+        }
 
         const saleId = saleResult.insertId;
 
@@ -170,7 +195,7 @@ exports.getSaleDetails = async (req, res) => {
 exports.updatePaymentStatus = async (req, res) => {
     try {
         const saleId = req.params.id;
-        const { payment_status } = req.body;
+        const { payment_status, payment_method } = req.body;
 
         if (!['paid', 'unpaid'].includes(payment_status)) {
             return res.status(400).json({ error: 'Invalid payment status' });
@@ -178,10 +203,24 @@ exports.updatePaymentStatus = async (req, res) => {
 
         const paymentDate = payment_status === 'paid' ? new Date().toISOString() : null;
 
-        await db.query(
-            'UPDATE sales SET payment_status = ?, payment_date = ? WHERE id = ?',
-            [payment_status, paymentDate, saleId]
-        );
+        // Try to update payment_method if column exists; fall back if not
+        try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('sales')");
+                const names = (info || []).map(r => r.name);
+                if (names.includes('payment_method')) {
+                    await db.query('UPDATE sales SET payment_status = ?, payment_date = ?, payment_method = ? WHERE id = ?', [payment_status, paymentDate, payment_method || null, saleId]);
+                } else {
+                    await db.query('UPDATE sales SET payment_status = ?, payment_date = ? WHERE id = ?', [payment_status, paymentDate, saleId]);
+                }
+            } else {
+                // Postgres/MySQL: assume column exists
+                await db.query('UPDATE sales SET payment_status = ?, payment_date = ?, payment_method = ? WHERE id = ?', [payment_status, paymentDate, payment_method || null, saleId]);
+            }
+        } catch (e) {
+            // fallback to basic update
+            await db.query('UPDATE sales SET payment_status = ?, payment_date = ? WHERE id = ?', [payment_status, paymentDate, saleId]);
+        }
 
         res.json({ success: true, message: 'Payment status updated' });
     } catch (error) {

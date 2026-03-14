@@ -428,7 +428,13 @@
 
                 // Payment type & status
                 const isPaid = sale.payment_status === 'paid';
-                document.getElementById('paymentType').textContent = isPaid ? 'CASH / POS' : 'PENDING';
+                const method = (sale.payment_method || '').toString();
+                if (isPaid) {
+                    const label = method ? method.toUpperCase() : 'CASH';
+                    document.getElementById('paymentType').textContent = label + ' (' + sale.payment_status.toUpperCase() + ')';
+                } else {
+                    document.getElementById('paymentType').textContent = 'PENDING';
+                }
                 const badge = document.getElementById('statusBadge');
                 badge.innerHTML = isPaid
                     ? '<span class="badge">ACCEPTED</span>'
