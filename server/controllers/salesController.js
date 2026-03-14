@@ -60,21 +60,20 @@ exports.createSale = async (req, res) => {
             // ignore
         }
 
+        let saleResult;
         if (hasPaymentMethod) {
-            const [saleResult] = await connection.query(
+            [saleResult] = await connection.query(
                 'INSERT INTO sales (customer_id, staff_id, total_amount, payment_status, payment_date, payment_method) VALUES (?, ?, ?, ?, ?, ?)',
                 [customerId, req.user.id, totalAmount, payment_status, paymentDate, payment_method || null]
             );
-            var saleId = saleResult.insertId;
         } else {
-            const [saleResult] = await connection.query(
+            [saleResult] = await connection.query(
                 'INSERT INTO sales (customer_id, staff_id, total_amount, payment_status, payment_date) VALUES (?, ?, ?, ?, ?)',
                 [customerId, req.user.id, totalAmount, payment_status, paymentDate]
             );
-            var saleId = saleResult.insertId;
         }
 
-        const saleId = saleResult.insertId;
+        const saleId = saleResult.insertId || saleResult.lastID || saleResult.insertedId || null;
 
         // Insert sale items — detect if sale_items.description exists to avoid schema errors
         let hasDescriptionCol = false;
