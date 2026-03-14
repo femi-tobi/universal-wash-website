@@ -115,16 +115,20 @@ exports.updateStaff = async (req, res) => {
             return res.status(403).json({ error: 'Permission denied' });
         }
 
-        const { username, full_name, role, password, address, phone } = req.body;
+    const { username, full_name, role, password, address, phone } = req.body;
 
-        // Build dynamic update
-        let updates = [];
-        let params = [];
-        if (username) { updates.push('username = ?'); params.push(username); }
-        if (full_name) { updates.push('full_name = ?'); params.push(full_name); }
-        if (role && actor.role === 'admin') { updates.push('role = ?'); params.push(role); }
-        if (typeof address !== 'undefined') { updates.push('address = ?'); params.push(address); }
-        if (typeof phone !== 'undefined') { updates.push('phone = ?'); params.push(phone); }
+    // Build dynamic update
+    let updates = [];
+    let params = [];
+    if (username) { updates.push('username = ?'); params.push(username); }
+    if (full_name) { updates.push('full_name = ?'); params.push(full_name); }
+    if (role && actor.role === 'admin') { updates.push('role = ?'); params.push(role); }
+
+    // Only include optional columns if they exist in the DB (Postgres may not have address/phone yet)
+    const hasAddressCol = await hasColumn('users', 'address');
+    const hasPhoneCol = await hasColumn('users', 'phone');
+    if (typeof address !== 'undefined' && hasAddressCol) { updates.push('address = ?'); params.push(address); }
+    if (typeof phone !== 'undefined' && hasPhoneCol) { updates.push('phone = ?'); params.push(phone); }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             updates.push('password = ?');
