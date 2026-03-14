@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Weekly Transactions - Admin</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    .controls{display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🗓️ Weekly Transactions</h1>
+    <div class="user-info">
+      <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="controls">
+      <label for="staffSelect">Staff</label>
+      <select id="staffSelect"><option value="">All</option></select>
+      <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+    </div>
+
+    <table id="salesTable">
+      <thead><tr><th>Date</th><th>Sale ID</th><th>Staff</th><th>Customer</th><th>Amount</th><th>Payment</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    async function loadStaffs(){
+      try{
+        const res = await fetch('/api/staff', { headers: getAuthHeaders() });
+        const list = await res.json();
+        const sel = document.getElementById('staffSelect');
+        list.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.full_name || s.username; sel.appendChild(o); });
+      }catch(e){ console.warn('Failed to load staff', e); }
+    }
+
+    async function loadWeekly(staffId){
+      const q = staffId ? `?staff_id=${encodeURIComponent(staffId)}` : '';
+      const res = await fetch(`/api/dashboard/sales/weekly${q}`, { headers: getAuthHeaders() });
+      if (!res.ok) { alert('Failed to load weekly sales'); return; }
+      const data = await res.json();
+      const tbody = document.querySelector('#salesTable tbody'); tbody.innerHTML = '';
+      (data.sales||[]).forEach(s => {
+        const tr = document.createElement('tr');
+        const d = new Date(s.created_at).toLocaleString();
+        tr.innerHTML = `<td>${d}</td><td>${s.id}</td><td>${s.staff_name||''}</td><td>${s.customer_name||s.customer_phone||'Walk-in'}</td><td>NGN ${Number(s.total_amount||0).toLocaleString()}</td><td>${s.payment_status||''}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      await loadStaffs();
+      const sel = document.getElementById('staffSelect');
+      await loadWeekly('');
+      document.getElementById('refreshBtn').addEventListener('click', ()=> loadWeekly(sel.value));
+      sel.addEventListener('change', ()=> loadWeekly(sel.value));
+    });
+  </script>
+</body>
+</html>

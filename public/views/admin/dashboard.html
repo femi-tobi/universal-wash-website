@@ -607,7 +607,7 @@
 
             <!-- Stats -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" id="cardDaily">
                     <div class="stat-icon blue">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
@@ -621,7 +621,7 @@
                         <div class="stat-sub" id="dailySales">— orders</div>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="cardWeekly" style="cursor:pointer">
                     <div class="stat-icon green">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
@@ -634,7 +634,7 @@
                         <div class="stat-sub">weekly total</div>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="cardMonthly" style="cursor:pointer">
                     <div class="stat-icon amber">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
@@ -666,6 +666,16 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                // Make week/month cards clickable and pass optional staff filter (none selected from dashboard)
+                document.addEventListener('DOMContentLoaded', ()=>{
+                    const week = document.getElementById('cardWeekly');
+                    if (week) week.addEventListener('click', ()=>{ window.location.href = 'weekly.html'; });
+                    const month = document.getElementById('cardMonthly');
+                    if (month) month.addEventListener('click', ()=>{ window.location.href = 'monthly.html'; });
+                });
+            </script>
 
             <!-- Garment / Item Count Stats -->
             <div class="section-label">Garments Processed</div>

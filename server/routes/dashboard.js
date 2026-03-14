@@ -17,5 +17,7 @@ router.get('/outstanding', dashboardController.getOutstandingPayments);
 router.get('/garments', dashboardController.getGarmentStats);
 router.get('/sales/yearly', dashboardController.getSalesByYear);
 router.get('/sales/yearly/csv', dashboardController.exportSalesByYearCsv);
+router.get('/sales/weekly', dashboardController.getSalesByWeek);
+router.get('/sales/monthly', dashboardController.getSalesByMonth);
 
 module.exports = router;
