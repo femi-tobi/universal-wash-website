@@ -20,7 +20,38 @@ async function run() {
 
     await db.query(createMigrationsTableSql);
 
-    const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort();
+    // Discover migration files and pick the best file per migration base name for this DB type.
+    const allSqlFiles = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
+
+    // Group files by base name (without db-specific suffix)
+    const groups = {};
+    for (const f of allSqlFiles) {
+        let base = f;
+        if (f.endsWith('.pg.sql')) base = f.slice(0, -7);
+        else if (f.endsWith('.mysql.sql')) base = f.slice(0, -10);
+        else if (f.endsWith('.sqlite.sql')) base = f.slice(0, -11);
+        else if (f.endsWith('.sql')) base = f.slice(0, -4);
+        groups[base] = groups[base] || [];
+        groups[base].push(f);
+    }
+
+    // Preferences per DB type: prefer DB-specific variants, fall back to generic .sql
+    const prefs = {
+        postgres: ['.pg.sql', '.sql'],
+        sqlite: ['.sql', '.sqlite.sql', '.pg.sql'],
+        mysql: ['.mysql.sql', '.sql', '.pg.sql']
+    };
+
+    const prefList = prefs[db.type] || ['.sql'];
+    const files = Object.keys(groups).map(base => {
+        const candidates = groups[base];
+        for (const ext of prefList) {
+            const name = base + ext;
+            if (candidates.includes(name)) return name;
+        }
+        // fallback: pick the first candidate
+        return candidates[0];
+    }).filter(Boolean).sort();
 
     for (const file of files) {
         const already = await db.query('SELECT name FROM migrations WHERE name = ?', [file]);
