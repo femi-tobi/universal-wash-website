@@ -164,14 +164,29 @@ exports.getStaffById = async (req, res) => {
 exports.getMySalesByDay = async (req, res) => {
     try {
         const staffId = req.user.id;
-        const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
-             FROM sales s
-             LEFT JOIN customers c ON s.customer_id = c.id
-             WHERE DATE(s.created_at) = CURDATE() AND s.staff_id = ?
-             ORDER BY s.created_at DESC`,
-            [staffId]
-        );
+        // Try to include payment_method if the column exists; if not, fall back to a query without it
+        let sales;
+        try {
+            [sales] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE DATE(s.created_at) = CURDATE() AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+        } catch (err) {
+            // fallback for DBs that don't have payment_method column
+            const [rows] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE DATE(s.created_at) = CURDATE() AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+            sales = rows;
+        }
 
         // Attach items for each sale
         for (const s of sales) {
@@ -193,19 +208,32 @@ exports.getMySalesByDay = async (req, res) => {
 exports.getMySalesByWeek = async (req, res) => {
     try {
         const staffId = req.user.id;
-        const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
-             FROM sales s
-             LEFT JOIN customers c ON s.customer_id = c.id
-             WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND s.staff_id = ?
-             ORDER BY s.created_at DESC`,
-            [staffId]
-        );
-        for (const s of sales) {
+        let salesW;
+        try {
+            [salesW] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+        } catch (err) {
+            const [rows] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+            salesW = rows;
+        }
+        for (const s of salesW) {
             const [items] = await db.query(`SELECT si.*, srv.name as service_name FROM sale_items si LEFT JOIN services srv ON si.service_id = srv.id WHERE si.sale_id = ?`, [s.id]);
             s.items = items;
         }
-        res.json({ sales });
+        res.json({ sales: salesW });
     } catch (error) {
         console.error('Get my weekly sales error:', error);
         res.status(500).json({ error: 'Failed to fetch weekly sales' });
@@ -216,19 +244,32 @@ exports.getMySalesByWeek = async (req, res) => {
 exports.getMySalesByMonth = async (req, res) => {
     try {
         const staffId = req.user.id;
-        const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
-             FROM sales s
-             LEFT JOIN customers c ON s.customer_id = c.id
-             WHERE MONTH(s.created_at) = MONTH(CURDATE()) AND YEAR(s.created_at) = YEAR(CURDATE()) AND s.staff_id = ?
-             ORDER BY s.created_at DESC`,
-            [staffId]
-        );
-        for (const s of sales) {
+        let salesM;
+        try {
+            [salesM] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE MONTH(s.created_at) = MONTH(CURDATE()) AND YEAR(s.created_at) = YEAR(CURDATE()) AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+        } catch (err) {
+            const [rows] = await db.query(
+                `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                 FROM sales s
+                 LEFT JOIN customers c ON s.customer_id = c.id
+                 WHERE MONTH(s.created_at) = MONTH(CURDATE()) AND YEAR(s.created_at) = YEAR(CURDATE()) AND s.staff_id = ?
+                 ORDER BY s.created_at DESC`,
+                [staffId]
+            );
+            salesM = rows;
+        }
+        for (const s of salesM) {
             const [items] = await db.query(`SELECT si.*, srv.name as service_name FROM sale_items si LEFT JOIN services srv ON si.service_id = srv.id WHERE si.sale_id = ?`, [s.id]);
             s.items = items;
         }
-        res.json({ sales });
+        res.json({ sales: salesM });
     } catch (error) {
         console.error('Get my monthly sales error:', error);
         res.status(500).json({ error: 'Failed to fetch monthly sales' });
