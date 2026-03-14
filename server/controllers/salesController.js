@@ -102,15 +102,29 @@ exports.getSaleDetails = async (req, res) => {
         const saleId = req.params.id;
 
         // Get sale info
-        const [sales] = await db.query(
-            `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
-                    u.full_name as staff_name, u.address as staff_address, u.phone as staff_phone
-            FROM sales s
-            JOIN customers c ON s.customer_id = c.id
-            JOIN users u ON s.staff_id = u.id
-            WHERE s.id = ?`,
-            [saleId]
-        );
+            // Try to include staff address/phone if users table has those columns; otherwise fallback to simpler select
+            let sales;
+            try {
+                [sales] = await db.query(
+                    `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
+                            u.full_name as staff_name, u.address as staff_address, u.phone as staff_phone
+                    FROM sales s
+                    JOIN customers c ON s.customer_id = c.id
+                    JOIN users u ON s.staff_id = u.id
+                    WHERE s.id = ?`,
+                    [saleId]
+                );
+            } catch (err) {
+                const [rows] = await db.query(
+                    `SELECT s.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, u.full_name as staff_name
+                    FROM sales s
+                    JOIN customers c ON s.customer_id = c.id
+                    JOIN users u ON s.staff_id = u.id
+                    WHERE s.id = ?`,
+                    [saleId]
+                );
+                sales = rows;
+            }
 
         if (sales.length === 0) {
             return res.status(404).json({ error: 'Sale not found' });

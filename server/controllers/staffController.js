@@ -113,10 +113,16 @@ exports.getStaffById = async (req, res) => {
             return res.status(403).json({ error: 'Permission denied' });
         }
 
-        const [rows] = await db.query('SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users WHERE id = ?', [staffId]);
-        if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
-
-        res.json(rows[0]);
+        // Try to include address/phone if present, otherwise fallback
+        try {
+            const [rows] = await db.query('SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users WHERE id = ?', [staffId]);
+            if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+            return res.json(rows[0]);
+        } catch (err) {
+            const [rows] = await db.query('SELECT id, username, full_name, role, is_active, created_at FROM users WHERE id = ?', [staffId]);
+            if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+            return res.json(rows[0]);
+        }
     } catch (error) {
         console.error('Get staff by id error:', error);
         res.status(500).json({ error: 'Failed to fetch staff' });
