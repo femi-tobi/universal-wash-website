@@ -28,7 +28,13 @@ function buildItemOptions(gender, serviceTypeIndex) {
     const list = PRICE_LIST[gender] || [];
     let opts = `<option value="">Select item...</option>`;
     list.forEach((item, idx) => {
-        const price = item.prices[serviceTypeIndex];
+        // Prefer explicit service price when available. If serviceTypeIndex points to
+        // Washing (new index) or the price is missing/null, fall back to the item's base price.
+        let price = (item.prices && item.prices[serviceTypeIndex] !== undefined) ? item.prices[serviceTypeIndex] : null;
+        if (price === null || price === undefined) {
+            // Use base price for Washing or any missing service price
+            price = item.base !== undefined ? item.base : null;
+        }
         if (price !== null && price !== undefined && price > 0) {
             opts += `<option value="${idx}" data-price="${price}">${item.name} — NGN ${Number(price).toLocaleString()}</option>`;
         }
