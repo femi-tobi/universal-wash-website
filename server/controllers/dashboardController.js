@@ -86,6 +86,140 @@ exports.getSalesByService = async (req, res) => {
     }
 };
 
+// Get yearly revenue (monthly breakdown for a given year or current year)
+exports.getYearlyRevenue = async (req, res) => {
+    try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        const [monthly] = await db.query(
+            `SELECT 
+                MONTH(created_at) as month,
+                COALESCE(SUM(total_amount), 0) as revenue,
+                COUNT(*) as sales_count
+            FROM sales
+            WHERE YEAR(created_at) = ?
+            GROUP BY MONTH(created_at)
+            ORDER BY month`,
+            [year]
+        );
+
+        const [totalRes] = await db.query(
+            `SELECT COALESCE(SUM(total_amount),0) as total_revenue, COUNT(*) as sales_count FROM sales WHERE YEAR(created_at) = ?`,
+            [year]
+        );
+
+        res.json({ year, monthly: monthly, total: totalRes[0] || { total_revenue: 0, sales_count: 0 } });
+    } catch (error) {
+        console.error('Get yearly revenue error:', error);
+        res.status(500).json({ error: 'Failed to fetch yearly revenue' });
+    }
+};
+
+// Get sales/transactions for a full year (optionally filtered by year)
+exports.getSalesByYear = async (req, res) => {
+    try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        // Filters and pagination
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(500, parseInt(req.query.limit) || 50);
+        const offset = (page - 1) * limit;
+
+        const filters = [];
+        const params = [year];
+        let joinSaleItems = false;
+
+        if (req.query.payment_status) {
+            filters.push('s.payment_status = ?');
+            params.push(req.query.payment_status);
+        }
+        if (req.query.staff_id) {
+            filters.push('s.staff_id = ?');
+            params.push(req.query.staff_id);
+        }
+        if (req.query.service_id) {
+            // need to join sale_items to filter by service
+            joinSaleItems = true;
+            filters.push('si.service_id = ?');
+            params.push(req.query.service_id);
+        }
+
+        let whereSql = 'WHERE YEAR(s.created_at) = ?';
+        if (filters.length) whereSql += ' AND ' + filters.join(' AND ');
+
+        let joinSql = '';
+        if (joinSaleItems) joinSql = 'JOIN sale_items si ON si.sale_id = s.id';
+
+        // total count for pagination
+        const countSql = `SELECT COUNT(DISTINCT s.id) as total_count FROM sales s ${joinSql} ${whereSql}`;
+        const [countRes] = await db.query(countSql, params);
+        const totalCount = countRes[0]?.total_count || 0;
+
+        const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+             FROM sales s
+             LEFT JOIN customers c ON s.customer_id = c.id
+             ${joinSql}
+             ${whereSql}
+             ORDER BY s.created_at DESC
+             LIMIT ? OFFSET ?`;
+        const finalParams = params.concat([limit, offset]);
+        const [rows] = await db.query(sql, finalParams);
+
+        res.json({ year, page, limit, total: totalCount, sales: rows });
+    } catch (error) {
+        console.error('Get sales by year error:', error);
+        res.status(500).json({ error: 'Failed to fetch sales for year' });
+    }
+};
+
+// CSV export for sales by year
+exports.exportSalesByYearCsv = async (req, res) => {
+    try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        const filters = [];
+        const params = [year];
+        let joinSaleItems = false;
+
+        if (req.query.payment_status) { filters.push('s.payment_status = ?'); params.push(req.query.payment_status); }
+        if (req.query.staff_id) { filters.push('s.staff_id = ?'); params.push(req.query.staff_id); }
+        if (req.query.service_id) { joinSaleItems = true; filters.push('si.service_id = ?'); params.push(req.query.service_id); }
+
+        let whereSql = 'WHERE YEAR(s.created_at) = ?';
+        if (filters.length) whereSql += ' AND ' + filters.join(' AND ');
+        let joinSql = '';
+        if (joinSaleItems) joinSql = 'JOIN sale_items si ON si.sale_id = s.id';
+
+        const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+                     FROM sales s
+                     LEFT JOIN customers c ON s.customer_id = c.id
+                     ${joinSql}
+                     ${whereSql}
+                     ORDER BY s.created_at DESC`;
+        const [rows] = await db.query(sql, params);
+
+        // Build CSV
+        const header = ['Sale ID', 'Date', 'Customer', 'Phone', 'Staff ID', 'Amount', 'Payment Status'];
+        const lines = [header.join(',')];
+        rows.forEach(r => {
+            const line = [
+                r.id,
+                new Date(r.created_at).toISOString(),
+                `"${(r.customer_name||'').replace(/"/g,'""')}"`,
+                r.customer_phone || '',
+                r.staff_id || '',
+                r.total_amount || 0,
+                r.payment_status || ''
+            ];
+            lines.push(line.join(','));
+        });
+        const csv = lines.join('\n');
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="sales_${year}.csv"`);
+        res.send(csv);
+    } catch (error) {
+        console.error('Export sales CSV error:', error);
+        res.status(500).json({ error: 'Failed to export CSV' });
+    }
+};
+
 // Get outstanding payments
 exports.getOutstandingPayments = async (req, res) => {
     try {

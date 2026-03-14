@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yearly Transactions - Admin</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .year-summary { display:flex;gap:18px;align-items:center;margin-bottom:18px }
+    .year-summary .card { padding:16px;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06) }
+    table { width:100%;border-collapse:collapse }
+    th,td{ padding:8px;border-bottom:1px solid #eee;text-align:left }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📅 Yearly Transactions</h1>
+    <div class="user-info">
+      <a href="dashboard.html"><button class="btn btn-secondary">← Dashboard</button></a>
+    </div>
+  </div>
+  <div class="container">
+    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
+      <label for="yearSelect">Select year</label>
+      <select id="yearSelect"></select>
+      <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+    </div>
+
+    <div class="year-summary">
+      <div class="card">
+        <div style="font-size:12px;color:#666">Year</div>
+        <div id="summaryYear" style="font-size:20px;font-weight:700"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;color:#666">Total Revenue</div>
+        <div id="summaryTotal" style="font-size:20px;font-weight:700;color:#16a34a">NGN 0</div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;color:#666">Total Sales</div>
+        <div id="summaryCount" style="font-size:20px;font-weight:700">0</div>
+      </div>
+    </div>
+
+    <h3>Monthly Breakdown</h3>
+    <table id="monthlyTable">
+      <thead><tr><th>Month</th><th>Revenue</th><th>Sales</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3 style="margin-top:18px">Transactions</h3>
+    <table id="salesTable">
+      <thead><tr><th>Date</th><th>Sale ID</th><th>Customer</th><th>Amount</th><th>Payment</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="/js/auth.js"></script>
+  <script>
+    async function fetchYears() {
+      const current = new Date().getFullYear();
+      const select = document.getElementById('yearSelect');
+      select.innerHTML = '';
+      for (let y = current; y >= current - 5; y--) {
+        const opt = document.createElement('option'); opt.value = y; opt.textContent = y; select.appendChild(opt);
+      }
+      select.value = current;
+    }
+
+    function formatCurrency(v){ return 'NGN ' + Number(v||0).toLocaleString('en-NG',{minimumFractionDigits:0}); }
+
+    async function loadYear(year){
+      document.getElementById('summaryYear').textContent = year;
+  const res = await fetch(`/api/dashboard/revenue/yearly?year=${year}`, { headers: getAuthHeaders() });
+      if (!res.ok) { alert('Failed to load yearly summary'); return; }
+      const data = await res.json();
+      document.getElementById('summaryTotal').textContent = formatCurrency(data.total.total_revenue);
+      document.getElementById('summaryCount').textContent = data.total.sales_count;
+      const tbody = document.querySelector('#monthlyTable tbody'); tbody.innerHTML = '';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const map = {};
+      (data.monthly||[]).forEach(m => map[m.month]=m);
+      for (let i=1;i<=12;i++){
+        const row = document.createElement('tr');
+        const m = map[i] || { revenue:0, sales_count:0 };
+        row.innerHTML = `<td>${months[i-1]}</td><td>${formatCurrency(m.revenue)}</td><td>${m.sales_count}</td>`;
+        tbody.appendChild(row);
+      }
+
+      // transactions
+  const tres = await fetch(`/api/dashboard/sales/yearly?year=${year}`, { headers: getAuthHeaders() });
+      if (!tres.ok) { alert('Failed to load transactions'); return; }
+      const tdata = await tres.json();
+      const stbody = document.querySelector('#salesTable tbody'); stbody.innerHTML = '';
+      (tdata.sales||[]).forEach(s => {
+        const tr = document.createElement('tr');
+        const d = new Date(s.created_at).toLocaleString();
+        tr.innerHTML = `<td>${d}</td><td>${s.id}</td><td>${s.customer_name || s.customer_phone || 'Walk-in'}</td><td>${formatCurrency(s.total_amount)}</td><td>${s.payment_status}</td>`;
+        stbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById && document.addEventListener('DOMContentLoaded', async ()=>{
+      await fetchYears();
+      const select = document.getElementById('yearSelect');
+      await loadYear(select.value);
+      document.getElementById('refreshBtn').addEventListener('click', ()=> loadYear(select.value));
+    });
+  </script>
+</body>
+</html>
