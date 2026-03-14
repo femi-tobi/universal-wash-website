@@ -5,6 +5,14 @@ exports.createSale = async (req, res) => {
     const connection = await db.getConnection();
     
     try {
+        // Debug log to help diagnose why POST /api/sales might 500 in some environments.
+        // This prints the authenticated user and request body to the server console (safe for local debugging).
+        console.error('createSale invoked - user/payload:', { user: req.user, bodySummary: {
+            customer_name: req.body && req.body.customer_name,
+            customer_phone: req.body && req.body.customer_phone,
+            items_count: req.body && Array.isArray(req.body.items) ? req.body.items.length : 0,
+            payment_status: req.body && req.body.payment_status
+        }});
         await connection.beginTransaction();
 
     const { customer_name, customer_phone, customer_address, items, payment_status, payment_method } = req.body;
