@@ -20,10 +20,23 @@
     </div>
   </div>
   <div class="container">
-    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
-      <label for="yearSelect">Select year</label>
+    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <label for="yearSelect">Year</label>
       <select id="yearSelect"></select>
+      <label for="paymentFilter">Payment</label>
+      <select id="paymentFilter">
+        <option value="">All</option>
+        <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
+      </select>
+      <label for="staffFilter">Staff</label>
+      <select id="staffFilter"><option value="">All</option></select>
+      <label for="serviceFilter">Service</label>
+      <select id="serviceFilter"><option value="">All</option></select>
+      <label for="pageSize">Per page</label>
+      <select id="pageSize"><option>25</option><option selected>50</option><option>100</option></select>
       <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+      <button id="downloadCsvBtn" class="btn">Download CSV</button>
     </div>
 
     <div class="year-summary">
@@ -42,6 +55,7 @@
     </div>
 
     <h3>Monthly Breakdown</h3>
+    <canvas id="monthlyChart" style="max-width:720px;margin-bottom:18px"></canvas>
     <table id="monthlyTable">
       <thead><tr><th>Month</th><th>Revenue</th><th>Sales</th></tr></thead>
       <tbody></tbody>
@@ -52,9 +66,99 @@
       <thead><tr><th>Date</th><th>Sale ID</th><th>Customer</th><th>Amount</th><th>Payment</th></tr></thead>
       <tbody></tbody>
     </table>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <div>
+        <button id="prevPage" class="btn">Prev</button>
+        <button id="nextPage" class="btn">Next</button>
+      </div>
+      <div>Page <span id="currentPage">1</span> — <span id="totalPages">1</span></div>
+    </div>
   </div>
   <script src="/js/auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    let chartInstance = null;
+    let currentPage = 1;
+    let totalPages = 1;
+
+    async function fetchStaffAndServices() {
+      try {
+        const sres = await fetch('/api/staff', { headers: getAuthHeaders() });
+        const staff = await sres.json();
+        const staffSelect = document.getElementById('staffFilter');
+        staff.forEach(s => {
+          const opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.full_name || s.username || s.email; staffSelect.appendChild(opt);
+        });
+        const tres = await fetch('/api/services', { headers: getAuthHeaders() });
+        const services = await tres.json();
+        const svcSelect = document.getElementById('serviceFilter');
+        services.forEach(s => { const opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name; svcSelect.appendChild(opt); });
+      } catch (e) { console.warn('Failed to load staff/services for filters', e); }
+    }
+
+    async function buildQueryParams(params){
+      return Object.entries(params).map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+    }
+
+    async function loadTransactions(year, page=1){
+      currentPage = page;
+      const pageSize = parseInt(document.getElementById('pageSize').value || '50');
+      const payment = document.getElementById('paymentFilter').value;
+      const staff = document.getElementById('staffFilter').value;
+      const service = document.getElementById('serviceFilter').value;
+      const params = { year, page, limit: pageSize };
+      if (payment) params.payment_status = payment;
+      if (staff) params.staff_id = staff;
+      if (service) params.service_id = service;
+      const q = await buildQueryParams(params);
+      const res = await fetch(`/api/dashboard/sales/yearly?${q}`, { headers: getAuthHeaders() });
+      if (!res.ok) { alert('Failed to load transactions'); return; }
+      const data = await res.json();
+      const stbody = document.querySelector('#salesTable tbody'); stbody.innerHTML = '';
+      (data.sales||[]).forEach(s => {
+        const tr = document.createElement('tr');
+        const d = new Date(s.created_at).toLocaleString();
+        tr.innerHTML = `<td>${d}</td><td>${s.id}</td><td>${s.customer_name || s.customer_phone || 'Walk-in'}</td><td>${formatCurrency(s.total_amount)}</td><td>${s.payment_status}</td>`;
+        stbody.appendChild(tr);
+      });
+      // pagination info
+      const total = data.total || 0;
+      totalPages = Math.max(1, Math.ceil(total / pageSize));
+      document.getElementById('currentPage').textContent = currentPage;
+      document.getElementById('totalPages').textContent = totalPages;
+    }
+
+    async function loadYear(year, page=1){
+      document.getElementById('summaryYear').textContent = year;
+      const res = await fetch(`/api/dashboard/revenue/yearly?year=${year}`, { headers: getAuthHeaders() });
+      if (!res.ok) { alert('Failed to load yearly summary'); return; }
+      const data = await res.json();
+      document.getElementById('summaryTotal').textContent = formatCurrency(data.total.total_revenue);
+      document.getElementById('summaryCount').textContent = data.total.sales_count;
+      const tbody = document.querySelector('#monthlyTable tbody'); tbody.innerHTML = '';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const map = {};
+      (data.monthly||[]).forEach(m => map[m.month]=m);
+      for (let i=1;i<=12;i++){
+        const row = document.createElement('tr');
+        const m = map[i] || { revenue:0, sales_count:0 };
+        row.innerHTML = `<td>${months[i-1]}</td><td>${formatCurrency(m.revenue)}</td><td>${m.sales_count}</td>`;
+        tbody.appendChild(row);
+      }
+      // draw chart
+      const labels = months;
+      const revenueData = new Array(12).fill(0);
+      (data.monthly||[]).forEach(m => { if (m.month>=1 && m.month<=12) revenueData[m.month-1] = m.revenue; });
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Monthly Revenue', data: revenueData, backgroundColor: 'rgba(34,163,240,0.7)' }] },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+      // load paginated transactions with filters
+      await loadTransactions(year, page);
+    }
     async function fetchYears() {
       const current = new Date().getFullYear();
       const select = document.getElementById('yearSelect');
@@ -100,9 +204,27 @@
 
     document.getElementById && document.addEventListener('DOMContentLoaded', async ()=>{
       await fetchYears();
+      await fetchStaffAndServices();
       const select = document.getElementById('yearSelect');
       await loadYear(select.value);
       document.getElementById('refreshBtn').addEventListener('click', ()=> loadYear(select.value));
+      document.getElementById('prevPage').addEventListener('click', ()=> { if (currentPage>1) loadTransactions(select.value, currentPage-1); });
+      document.getElementById('nextPage').addEventListener('click', ()=> { if (currentPage<totalPages) loadTransactions(select.value, currentPage+1); });
+      document.getElementById('pageSize').addEventListener('change', ()=> loadTransactions(select.value,1));
+      document.getElementById('paymentFilter').addEventListener('change', ()=> loadTransactions(select.value,1));
+      document.getElementById('staffFilter').addEventListener('change', ()=> loadTransactions(select.value,1));
+      document.getElementById('serviceFilter').addEventListener('change', ()=> loadTransactions(select.value,1));
+      document.getElementById('downloadCsvBtn').addEventListener('click', async ()=>{
+        const payment = document.getElementById('paymentFilter').value;
+        const staff = document.getElementById('staffFilter').value;
+        const service = document.getElementById('serviceFilter').value;
+        const params = { year: select.value };
+        if (payment) params.payment_status = payment;
+        if (staff) params.staff_id = staff;
+        if (service) params.service_id = service;
+        const q = Object.entries(params).map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+        window.location = `/api/dashboard/sales/yearly/csv?${q}`;
+      });
     });
   </script>
 </body>
