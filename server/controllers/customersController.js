@@ -21,6 +21,21 @@ exports.getAllCustomers = async (req, res) => {
     }
 };
 
+// Lookup customer by phone (accessible to authenticated staff/admin)
+exports.lookupByPhone = async (req, res) => {
+    try {
+        const phone = req.query.phone;
+        if (!phone) return res.status(400).json({ error: 'phone query param required' });
+
+        const [customers] = await db.query('SELECT * FROM customers WHERE phone = ? LIMIT 1', [phone]);
+        if (!customers || customers.length === 0) return res.status(404).json({ error: 'Customer not found' });
+        return res.json({ customer: customers[0] });
+    } catch (error) {
+        console.error('Lookup customer error:', error);
+        res.status(500).json({ error: 'Failed to lookup customer' });
+    }
+};
+
 // Get customer order history
 exports.getCustomerHistory = async (req, res) => {
     try {

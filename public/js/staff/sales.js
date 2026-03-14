@@ -291,11 +291,15 @@ document.getElementById('customerPhone')?.addEventListener('blur', async functio
     const phone = this.value.trim();
     if (!phone) return;
     try {
-        const response = await fetch('/api/customers', { headers: getAuthHeaders() });
-        const customers = await response.json();
-        const existing = customers.find(c => c.phone === phone);
+        const resp = await fetch(`/api/customers/lookup?phone=${encodeURIComponent(phone)}`, { headers: getAuthHeaders() });
+        if (!resp.ok) {
+            // Not found or forbidden — just silently ignore so staff can create a new customer on submit
+            return;
+        }
+        const data = await resp.json();
+        const existing = data && data.customer ? data.customer : null;
         if (existing) {
-            document.getElementById('customerName').value = existing.name;
+            document.getElementById('customerName').value = existing.name || '';
             if (existing.address) {
                 document.getElementById('customerAddress').value = existing.address;
             }
