@@ -42,14 +42,37 @@ exports.addStaff = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const [result] = await db.query(
-            'INSERT INTO users (username, password, full_name, role, address, phone) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, hashedPassword, full_name, role, address || null, phone || null]
-        );
+        // Build INSERT dynamically depending on whether the users table has address/phone (SQLite older schemas may not)
+        let cols = ['username', 'password', 'full_name', 'role'];
+        let placeholders = ['?', '?', '?', '?'];
+        let params = [username, hashedPassword, full_name, role];
+
+        try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('users')");
+                const names = (info || []).map(r => r.name);
+                if (names.includes('address')) {
+                    cols.push('address'); placeholders.push('?'); params.push(address || null);
+                }
+                if (names.includes('phone')) {
+                    cols.push('phone'); placeholders.push('?'); params.push(phone || null);
+                }
+            } else {
+                // For other DBs (MySQL/Postgres) assume columns exist; include them so the API works consistently
+                cols.push('address', 'phone'); placeholders.push('?', '?'); params.push(address || null, phone || null);
+            }
+        } catch (e) {
+            // If detection fails, fall back to inserting without optional columns
+        }
+
+        const sql = `INSERT INTO users (${cols.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        const [result] = await db.query(sql, params);
+
+        const userId = result && (result.insertId || result.lastID || result.insertedId) || null;
 
         res.json({
             success: true,
-            user_id: result.insertId,
+            user_id: userId,
             message: 'Staff member added successfully'
         });
     } catch (error) {
