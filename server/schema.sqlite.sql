@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     full_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK(role IN ('admin', 'staff')),
+    address TEXT DEFAULT NULL,
+    phone TEXT DEFAULT NULL,
     is_active INTEGER DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
@@ -59,6 +61,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     quantity INTEGER NOT NULL DEFAULT 1,
     unit_price REAL NOT NULL,
     subtotal REAL NOT NULL,
+    description TEXT DEFAULT NULL,
     FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
     FOREIGN KEY (service_id) REFERENCES services(id)
 );
