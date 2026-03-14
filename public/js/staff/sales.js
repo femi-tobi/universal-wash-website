@@ -5,8 +5,9 @@ let itemCounter = 0;
 let PRICE_LIST = { male: [], female: [] };
 let BULK_DISCOUNTS = [];
 
-const SERVICE_TYPES = ['Hanging', 'Pressing', 'Express'];
-const SERVICE_ICONS = ['👔', '♨️', '⚡'];
+// Added 'Washing' as an additional service type; appended to keep existing indexes stable.
+const SERVICE_TYPES = ['Hanging', 'Pressing', 'Express', 'Washing'];
+const SERVICE_ICONS = ['👔', '♨️', '⚡', '🧺'];
 
 // ─── Load price list from server ─────────────────────────────────────────────
 async function loadPricelist() {
