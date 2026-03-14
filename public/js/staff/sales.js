@@ -126,6 +126,11 @@ function addItemRow() {
         </div>
 
         <div class="form-group">
+            <label>Item Description (optional)</label>
+            <input type="text" class="item-desc" data-item="${itemCounter}" placeholder="e.g. Red, no buttons, delicate" />
+        </div>
+
+        <div class="form-group">
             <label>Subtotal</label>
             <input type="text" class="subtotal" data-item="${itemCounter}" readonly
                 style="background:#e2e8f0;font-weight:700;font-size:18px;" value="NGN 0">
@@ -233,12 +238,16 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
         const discountedUnit = unitPrice * (1 - discountPct / 100);
         const subtotal = discountedUnit * quantity;
 
+        const descInput = document.querySelector(`.item-desc[data-item="${itemId}"]`);
+        const description = descInput ? descInput.value.trim() : null;
+
         items.push({
             service_id: 1,
             item_type: `[${gender.toUpperCase()}] ${itemName} (${serviceTypeName})`,
             quantity,
             unit_price: parseFloat(discountedUnit.toFixed(2)),
-            subtotal: parseFloat(subtotal.toFixed(2))
+            subtotal: parseFloat(subtotal.toFixed(2)),
+            description: description || null
         });
     });
 

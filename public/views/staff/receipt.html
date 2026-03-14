@@ -461,6 +461,7 @@
                     tr.innerHTML = `
                         <td>
                             <div class="item-name">${item.item_type.toUpperCase()}</div>
+                            ${item.description ? `<div style="font-size:11px;color:#666;margin-top:4px">${(item.description||'').replace(/</g,'&lt;')}</div>` : ''}
                         </td>
                         <td class="item-service">${item.service_name}</td>
                         <td>${item.quantity}</td>

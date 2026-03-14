@@ -53,9 +53,10 @@ exports.createSale = async (req, res) => {
 
         // Insert sale items
         for (const item of items) {
+            // include optional description column if present in DB schema
             await connection.query(
-                'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?, ?)',
-                [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal]
+                'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal, item.description || null]
             );
         }
 

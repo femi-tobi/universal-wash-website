@@ -4,11 +4,19 @@ const bcrypt = require('bcryptjs');
 // Get all staff
 exports.getAllStaff = async (req, res) => {
     try {
-        const [staff] = await db.query(
-            'SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users ORDER BY created_at DESC'
-        );
-
-        res.json(staff);
+        // Try selecting address/phone (may not exist on older DBs)
+        try {
+            const [staff] = await db.query(
+                'SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users ORDER BY created_at DESC'
+            );
+            return res.json(staff);
+        } catch (err) {
+            // Fallback: older schema without address/phone
+            const [staff] = await db.query(
+                'SELECT id, username, full_name, role, is_active, created_at FROM users ORDER BY created_at DESC'
+            );
+            return res.json(staff);
+        }
     } catch (error) {
         console.error('Get staff error:', error);
         res.status(500).json({ error: 'Failed to fetch staff' });

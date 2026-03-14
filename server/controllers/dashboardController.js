@@ -153,9 +153,10 @@ exports.getSalesByYear = async (req, res) => {
         const [countRes] = await db.query(countSql, params);
         const totalCount = countRes[0]?.total_count || 0;
 
-        const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+       const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, u.full_name as staff_name, c.name as customer_name, c.phone as customer_phone
              FROM sales s
              LEFT JOIN customers c ON s.customer_id = c.id
+           LEFT JOIN users u ON s.staff_id = u.id
              ${joinSql}
              ${whereSql}
              ORDER BY s.created_at DESC
@@ -187,16 +188,17 @@ exports.exportSalesByYearCsv = async (req, res) => {
         let joinSql = '';
         if (joinSaleItems) joinSql = 'JOIN sale_items si ON si.sale_id = s.id';
 
-        const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+    const sql = `SELECT DISTINCT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, u.full_name as staff_name, c.name as customer_name, c.phone as customer_phone
                      FROM sales s
                      LEFT JOIN customers c ON s.customer_id = c.id
+             LEFT JOIN users u ON s.staff_id = u.id
                      ${joinSql}
                      ${whereSql}
                      ORDER BY s.created_at DESC`;
         const [rows] = await db.query(sql, params);
 
         // Build CSV
-        const header = ['Sale ID', 'Date', 'Customer', 'Phone', 'Staff ID', 'Amount', 'Payment Status'];
+        const header = ['Sale ID', 'Date', 'Customer', 'Phone', 'Staff', 'Amount', 'Payment Status'];
         const lines = [header.join(',')];
         rows.forEach(r => {
             const line = [
@@ -204,7 +206,7 @@ exports.exportSalesByYearCsv = async (req, res) => {
                 new Date(r.created_at).toISOString(),
                 `"${(r.customer_name||'').replace(/"/g,'""')}"`,
                 r.customer_phone || '',
-                r.staff_id || '',
+                `"${(r.staff_name||'').replace(/"/g,'""')}"`,
                 r.total_amount || 0,
                 r.payment_status || ''
             ];
