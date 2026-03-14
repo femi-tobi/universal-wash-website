@@ -92,7 +92,15 @@ async function run() {
     console.log('Migrations finished.');
 }
 
-run().catch(err => {
-    console.error('Migration runner error:', err);
-    process.exit(1);
-});
+// Export the runner so it can be invoked programmatically (e.g., via an admin-only API)
+module.exports = {
+    run
+};
+
+// If run directly (node server/migrate.js), execute immediately.
+if (require.main === module) {
+    run().catch(err => {
+        console.error('Migration runner error:', err);
+        process.exit(1);
+    });
+}

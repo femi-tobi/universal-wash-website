@@ -20,6 +20,7 @@ const staffRoutes = require('./routes/staff');
 const saleItemsRoutes = require('./routes/saleItems');
 const customersRoutes = require('./routes/customers');
 const pricelistRoutes = require('./routes/pricelist');
+const migrateRoutes = require('./routes/migrate');
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -30,6 +31,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/pricelist', pricelistRoutes);
 app.use('/api/sale_items', saleItemsRoutes);
+app.use('/api/migrate', migrateRoutes);
 
 // Serve HTML pages
 app.get('/', (req, res) => {
