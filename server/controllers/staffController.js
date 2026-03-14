@@ -165,7 +165,7 @@ exports.getMySalesByDay = async (req, res) => {
     try {
         const staffId = req.user.id;
         const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
              FROM sales s
              LEFT JOIN customers c ON s.customer_id = c.id
              WHERE DATE(s.created_at) = CURDATE() AND s.staff_id = ?
@@ -194,7 +194,7 @@ exports.getMySalesByWeek = async (req, res) => {
     try {
         const staffId = req.user.id;
         const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
              FROM sales s
              LEFT JOIN customers c ON s.customer_id = c.id
              WHERE DATE(s.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND s.staff_id = ?
@@ -217,7 +217,7 @@ exports.getMySalesByMonth = async (req, res) => {
     try {
         const staffId = req.user.id;
         const [sales] = await db.query(
-            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.staff_id, c.name as customer_name, c.phone as customer_phone
+            `SELECT s.id, s.total_amount, s.created_at, s.payment_status, s.payment_method, s.staff_id, c.name as customer_name, c.phone as customer_phone
              FROM sales s
              LEFT JOIN customers c ON s.customer_id = c.id
              WHERE MONTH(s.created_at) = MONTH(CURDATE()) AND YEAR(s.created_at) = YEAR(CURDATE()) AND s.staff_id = ?

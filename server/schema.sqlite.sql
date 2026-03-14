@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS sales (
     total_amount REAL NOT NULL,
     payment_status TEXT DEFAULT 'unpaid' CHECK(payment_status IN ('paid', 'unpaid')),
     payment_date TEXT,
+    payment_method TEXT DEFAULT NULL,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (customer_id) REFERENCES customers(id),

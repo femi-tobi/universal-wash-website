@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS sales (
     total_amount NUMERIC(10, 2) NOT NULL,
     payment_status VARCHAR(10) DEFAULT 'unpaid' CHECK(payment_status IN ('paid', 'unpaid')),
     payment_date TIMESTAMPTZ NULL,
+    payment_method VARCHAR(20) DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
