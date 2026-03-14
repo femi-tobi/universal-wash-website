@@ -4,19 +4,22 @@ const bcrypt = require('bcryptjs');
 // Get all staff
 exports.getAllStaff = async (req, res) => {
     try {
-        // Try selecting address/phone (may not exist on older DBs)
+        // Build a safe SELECT column list based on actual table columns (works for SQLite)
+        let cols = ['id','username','full_name','role','is_active','created_at'];
         try {
-            const [staff] = await db.query(
-                'SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users ORDER BY created_at DESC'
-            );
-            return res.json(staff);
-        } catch (err) {
-            // Fallback: older schema without address/phone
-            const [staff] = await db.query(
-                'SELECT id, username, full_name, role, is_active, created_at FROM users ORDER BY created_at DESC'
-            );
-            return res.json(staff);
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('users')");
+                const names = (info || []).map(r => r.name);
+                if (names.includes('address')) cols.splice(5,0,'address'); // insert before created_at
+                if (names.includes('phone')) cols.splice(6,0,'phone');
+            }
+        } catch (e) {
+            // ignore and fall back to default cols
         }
+
+        const sql = `SELECT ${cols.join(', ')} FROM users ORDER BY created_at DESC`;
+        const [staff] = await db.query(sql);
+        return res.json(staff);
     } catch (error) {
         console.error('Get staff error:', error);
         res.status(500).json({ error: 'Failed to fetch staff' });
@@ -113,16 +116,21 @@ exports.getStaffById = async (req, res) => {
             return res.status(403).json({ error: 'Permission denied' });
         }
 
-        // Try to include address/phone if present, otherwise fallback
+        // Build safe column list dynamically (avoid referencing columns that don't exist)
+        let cols = ['id','username','full_name','role','is_active','created_at'];
         try {
-            const [rows] = await db.query('SELECT id, username, full_name, role, is_active, address, phone, created_at FROM users WHERE id = ?', [staffId]);
-            if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
-            return res.json(rows[0]);
-        } catch (err) {
-            const [rows] = await db.query('SELECT id, username, full_name, role, is_active, created_at FROM users WHERE id = ?', [staffId]);
-            if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
-            return res.json(rows[0]);
-        }
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('users')");
+                const names = (info || []).map(r => r.name);
+                if (names.includes('address')) cols.splice(5,0,'address');
+                if (names.includes('phone')) cols.splice(6,0,'phone');
+            }
+        } catch (e) { /* ignore */ }
+
+        const sql = `SELECT ${cols.join(', ')} FROM users WHERE id = ?`;
+        const [rows] = await db.query(sql, [staffId]);
+        if (!rows || rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+        return res.json(rows[0]);
     } catch (error) {
         console.error('Get staff by id error:', error);
         res.status(500).json({ error: 'Failed to fetch staff' });

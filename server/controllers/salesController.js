@@ -51,13 +51,30 @@ exports.createSale = async (req, res) => {
 
         const saleId = saleResult.insertId;
 
-        // Insert sale items
+        // Insert sale items — detect if sale_items.description exists to avoid schema errors
+        let hasDescriptionCol = false;
+        try {
+            if (db.type === 'sqlite') {
+                const [info] = await db.query("PRAGMA table_info('sale_items')");
+                const names = (info || []).map(r => r.name);
+                hasDescriptionCol = names.includes('description');
+            }
+        } catch (e) {
+            // ignore and assume no description column
+        }
+
         for (const item of items) {
-            // include optional description column if present in DB schema
-            await connection.query(
-                'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal, item.description || null]
-            );
+            if (hasDescriptionCol) {
+                await connection.query(
+                    'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal, item.description || null]
+                );
+            } else {
+                await connection.query(
+                    'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?, ?)',
+                    [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal]
+                );
+            }
         }
 
         await connection.commit();
