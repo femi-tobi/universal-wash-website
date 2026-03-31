@@ -14,9 +14,15 @@ async function run() {
     console.log('Using DB type:', db.type);
 
     // Create migrations table if not exists
-    const createMigrationsTableSql = db.type === 'postgres'
-        ? `CREATE TABLE IF NOT EXISTS migrations (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, applied_at TIMESTAMP NOT NULL)`
-        : `CREATE TABLE IF NOT EXISTS migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, applied_at TEXT NOT NULL)`;
+    let createMigrationsTableSql;
+    if (db.type === 'postgres') {
+        createMigrationsTableSql = `CREATE TABLE IF NOT EXISTS migrations (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, applied_at TIMESTAMP NOT NULL)`;
+    } else if (db.type === 'mysql') {
+        createMigrationsTableSql = `CREATE TABLE IF NOT EXISTS migrations (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
+    } else {
+        // sqlite
+        createMigrationsTableSql = `CREATE TABLE IF NOT EXISTS migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, applied_at TEXT NOT NULL)`;
+    }
 
     await db.query(createMigrationsTableSql);
 
@@ -82,6 +88,7 @@ async function run() {
                 if (!hasCol('users', 'address')) alters.push("ALTER TABLE users ADD COLUMN address TEXT DEFAULT NULL;");
                 if (!hasCol('users', 'phone'))   alters.push("ALTER TABLE users ADD COLUMN phone TEXT DEFAULT NULL;");
                 if (!hasCol('sale_items', 'description')) alters.push("ALTER TABLE sale_items ADD COLUMN description TEXT DEFAULT NULL;");
+                if (!hasCol('sale_items', 'total_pieces')) alters.push("ALTER TABLE sale_items ADD COLUMN total_pieces INTEGER DEFAULT 1;");
 
                 if (alters.length > 0) {
                     sqlite.exec('PRAGMA foreign_keys = OFF; BEGIN; ' + alters.join(' ') + ' COMMIT; PRAGMA foreign_keys = ON;');
@@ -104,7 +111,7 @@ async function run() {
         } catch (err) {
             const msg = String(err.message || '').toLowerCase();
             // If the migration already applied (duplicate column / already exists), treat as ok
-            if (msg.includes('duplicate column') || msg.includes('duplicate column name') || msg.includes('already exists') || msg.includes('duplicate') ) {
+            if (msg.includes('duplicate column') || msg.includes('duplicate column name') || msg.includes('already exists') || msg.includes('duplicate')) {
                 console.warn('Migration appears partially applied or columns already exist — marking as applied:', file);
                 try {
                     await db.query('INSERT INTO migrations (name, applied_at) VALUES (?, ?)', [file, new Date().toISOString()]);

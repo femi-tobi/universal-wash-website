@@ -120,9 +120,16 @@ function addItemRow() {
                 </select>
             </div>
             <div class="form-group">
-                <label>Quantity *</label>
-                <input type="number" class="quantity" data-item="${itemCounter}" min="1" value="1" required>
+                <label>Total Pieces *</label>
+                <input type="number" class="total-pieces" data-item="${itemCounter}" min="1" value="1" required>
+                <small style="color:var(--text-secondary);">Count of all items (e.g. 2 for suit)</small>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label>Billing Quantity *</label>
+            <input type="number" class="quantity" data-item="${itemCounter}" min="0.1" step="0.1" value="1" required>
+            <small style="color:var(--text-secondary);">Quantity used for price calculation (e.g. 1 for suit)</small>
         </div>
 
         <div class="form-group">
@@ -140,6 +147,7 @@ function addItemRow() {
     container.appendChild(row);
     row.querySelector('.item-select').addEventListener('change', calculateItemTotal);
     row.querySelector('.quantity').addEventListener('input', calculateItemTotal);
+    row.querySelector('.total-pieces').addEventListener('input', calculateTotal);
 }
 
 // ─── Remove item row ──────────────────────────────────────────────────────────
@@ -171,7 +179,7 @@ function calculateTotal() {
     document.querySelectorAll('.subtotal').forEach(input => {
         rawTotal += parseFloat(input.value.replace('NGN ', '').replace(/,/g, '')) || 0;
     });
-    document.querySelectorAll('.quantity').forEach(input => {
+    document.querySelectorAll('.total-pieces').forEach(input => {
         totalQty += parseInt(input.value) || 0;
     });
 
@@ -233,7 +241,8 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
 
         const itemName = selectedOption.text.split(' —')[0];
         const unitPrice = parseFloat(selectedOption.dataset.price) || 0;
-        const quantity = parseInt(document.querySelector(`.quantity[data-item="${itemId}"]`).value) || 1;
+        const quantity = parseFloat(document.querySelector(`.quantity[data-item="${itemId}"]`).value) || 1;
+        const totalPieces = parseInt(document.querySelector(`.total-pieces[data-item="${itemId}"]`).value) || 1;
 
         const discountPct = window._saleDiscount?.pct || 0;
         const discountedUnit = unitPrice * (1 - discountPct / 100);
@@ -243,12 +252,13 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
         const description = descInput ? descInput.value.trim() : null;
 
         // Map the UI service index to the backend database service ID (1: Wash, 2: Iron, 3: Dry Clean, 4: Wash & Iron)
-        const mappedServiceId = svcIndex + 1; 
+        const mappedServiceId = svcIndex + 1;
 
         items.push({
             service_id: mappedServiceId,
             item_type: `[${gender.toUpperCase()}] ${itemName} (${serviceTypeName})`,
             quantity,
+            total_pieces: totalPieces,
             unit_price: parseFloat(discountedUnit.toFixed(2)),
             subtotal: parseFloat(subtotal.toFixed(2)),
             description: description || null

@@ -23,19 +23,21 @@ async function hasColumn(table, column) {
 // Create new sale with items
 exports.createSale = async (req, res) => {
     const connection = await db.getConnection();
-    
+
     try {
         // Debug log to help diagnose why POST /api/sales might 500 in some environments.
         // This prints the authenticated user and request body to the server console (safe for local debugging).
-        console.error('createSale invoked - user/payload:', { user: req.user, bodySummary: {
-            customer_name: req.body && req.body.customer_name,
-            customer_phone: req.body && req.body.customer_phone,
-            items_count: req.body && Array.isArray(req.body.items) ? req.body.items.length : 0,
-            payment_status: req.body && req.body.payment_status
-        }});
+        console.error('createSale invoked - user/payload:', {
+            user: req.user, bodySummary: {
+                customer_name: req.body && req.body.customer_name,
+                customer_phone: req.body && req.body.customer_phone,
+                items_count: req.body && Array.isArray(req.body.items) ? req.body.items.length : 0,
+                payment_status: req.body && req.body.payment_status
+            }
+        });
         await connection.beginTransaction();
 
-    const { customer_name, customer_phone, customer_address, items, payment_status, payment_method } = req.body;
+        const { customer_name, customer_phone, customer_address, items, payment_status, payment_method } = req.body;
 
         // Validate input
         if (!customer_name || !customer_phone || !items || items.length === 0) {
@@ -96,40 +98,55 @@ exports.createSale = async (req, res) => {
 
         const saleId = saleResult.insertId || saleResult.lastID || saleResult.insertedId || null;
 
-        // Insert sale items — detect if sale_items.description exists to avoid schema errors
+        // Insert sale items — detect if sale_items.description and total_pieces exist to avoid schema errors
         let hasDescriptionCol = false;
+        let hasTotalPiecesCol = false;
         try {
             if (db.type === 'sqlite') {
                 const [info] = await db.query("SELECT * FROM pragma_table_info('sale_items')");
                 const names = (info || []).map(r => r.name);
                 hasDescriptionCol = names.includes('description');
+                hasTotalPiecesCol = names.includes('total_pieces');
             } else if (db.type === 'postgres') {
-                const [rows] = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'sale_items' AND column_name = 'description'");
-                hasDescriptionCol = (rows || []).length > 0;
+                const [rows] = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'sale_items' AND column_name IN ('description', 'total_pieces')");
+                const names = (rows || []).map(r => r.column_name);
+                hasDescriptionCol = names.includes('description');
+                hasTotalPiecesCol = names.includes('total_pieces');
             } else if (db.type === 'mysql') {
-                const [rows] = await db.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'sale_items' AND COLUMN_NAME = 'description' AND TABLE_SCHEMA = DATABASE()");
-                hasDescriptionCol = (rows || []).length > 0;
+                const [rows] = await db.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'sale_items' AND COLUMN_NAME IN ('description', 'total_pieces') AND TABLE_SCHEMA = DATABASE()");
+                const names = (rows || []).map(r => r.COLUMN_NAME);
+                hasDescriptionCol = names.includes('description');
+                hasTotalPiecesCol = names.includes('total_pieces');
             } else {
                 // conservative default: assume column exists
                 hasDescriptionCol = true;
+                hasTotalPiecesCol = true;
             }
         } catch (e) {
-            // ignore and assume no description column
+            // ignore and assume no columns available
             hasDescriptionCol = false;
+            hasTotalPiecesCol = false;
         }
 
         for (const item of items) {
+            // Construct the columns and values dynamically to handle combinations of description/total_pieces
+            let cols = ['sale_id', 'service_id', 'item_type', 'quantity', 'unit_price', 'subtotal'];
+            let vals = [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal];
+            let placeholders = ['?', '?', '?', '?', '?', '?'];
+
             if (hasDescriptionCol) {
-                await connection.query(
-                    'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal, item.description || null]
-                );
-            } else {
-                await connection.query(
-                    'INSERT INTO sale_items (sale_id, service_id, item_type, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?, ?)',
-                    [saleId, item.service_id, item.item_type, item.quantity, item.unit_price, item.subtotal]
-                );
+                cols.push('description');
+                vals.push(item.description || null);
+                placeholders.push('?');
             }
+            if (hasTotalPiecesCol) {
+                cols.push('total_pieces');
+                vals.push(item.total_pieces || 1);
+                placeholders.push('?');
+            }
+
+            const sql = `INSERT INTO sale_items (${cols.join(', ')}) VALUES (${placeholders.join(', ')})`;
+            await connection.query(sql, vals);
         }
 
         await connection.commit();
@@ -274,7 +291,7 @@ exports.getUnpaidSales = async (req, res) => {
             SELECT s.id, s.total_amount, s.created_at,
                    c.name AS customer_name, c.phone AS customer_phone,
                    u.full_name AS staff_name,
-                   (SELECT COUNT(*) FROM sale_items si WHERE si.sale_id = s.id) AS item_count
+                   (SELECT SUM(COALESCE(si.total_pieces, si.quantity, 1)) FROM sale_items si WHERE si.sale_id = s.id) AS item_count
             FROM sales s
             JOIN customers c ON s.customer_id = c.id
             JOIN users u ON s.staff_id = u.id

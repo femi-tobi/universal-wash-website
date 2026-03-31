@@ -63,8 +63,9 @@
         }
 
         .receipt-header p {
-            font-size: 12px;
-            color: #444;
+            font-size: 13px;
+            color: #000;
+            font-weight: 600;
             line-height: 1.5;
         }
 
@@ -81,12 +82,12 @@
         }
 
         .section-title {
-            font-size: 12px;
-            font-weight: 650;
+            font-size: 13px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
-            color: #222;
+            color: #000;
         }
 
         /* ── Two-column info rows ── */
@@ -106,7 +107,8 @@
 
         .info-item span {
             font-size: 12px;
-            color: #111;
+            font-weight: 700;
+            color: #000;
         }
 
         .info-item .badge {
@@ -137,10 +139,10 @@
         .items-table th {
             text-align: left;
             font-size: 10px;
-            font-weight: 800;
-            color: #555;
+            font-weight: 900;
+            color: #000;
             padding: 4px 0;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 2px solid #000;
         }
 
         .items-table th:last-child,
@@ -150,8 +152,9 @@
 
         .items-table td {
             padding: 6px 0;
-            color: #111;
-            border-bottom: 1px solid #f0f0f0;
+            color: #000;
+            font-weight: 600;
+            border-bottom: 1px solid #ccc;
             vertical-align: top;
         }
 
@@ -162,7 +165,8 @@
 
         .items-table .item-service {
             font-size: 10px;
-            color: #000000;
+            font-weight: 700;
+            color: #000;
         }
 
         /* ── Payment summary ── */
@@ -170,8 +174,9 @@
             display: flex;
             justify-content: space-between;
             font-size: 12px;
+            font-weight: 700;
             padding: 3px 0;
-            color: #333;
+            color: #000;
         }
 
         .summary-row.total {
@@ -192,12 +197,13 @@
         /* ── Footer ── */
         .receipt-footer {
             text-align: center;
-            font-size: 10px;
-            color: #000000;
+            font-size: 11px;
+            color: #000;
+            font-weight: 600;
             line-height: 1.6;
             margin-top: 14px;
             padding-top: 12px;
-            border-top: 1px dashed #ccc;
+            border-top: 1px dashed #000;
         }
 
         /* ── Print button (hidden on print) ── */
@@ -322,7 +328,8 @@
                         <tr>
                             <th>Item</th>
                             <th>Service</th>
-                            <th>Qty</th>
+                            <th>Pcs</th>
+                            <th>Bill Qty</th>
                             <th>Amount</th>
                         </tr>
                     </thead>
@@ -338,7 +345,7 @@
             <div class="section">
                 <div class="section-title">Payment Summary</div>
                 <div class="summary-row">
-                    <span>Total Quantity</span>
+                    <span>Total Pieces</span>
                     <span id="totalQty">0</span>
                 </div>
                 <div class="summary-row">
@@ -442,7 +449,7 @@
 
                 // Header business/branch info: if staff has address/phone, prefer those
                 if (sale.staff_address) {
-                    document.getElementById('bizAddress').innerHTML = sale.staff_address.replace(/\n/g,'<br>');
+                    document.getElementById('bizAddress').innerHTML = sale.staff_address.replace(/\n/g, '<br>');
                 }
                 if (sale.staff_phone) {
                     document.getElementById('bizPhone').textContent = sale.staff_phone;
@@ -461,15 +468,17 @@
                 tbody.innerHTML = '';
 
                 items.forEach(item => {
-                    totalQty += item.quantity;
+                    const pcs = item.total_pieces !== undefined && item.total_pieces !== null ? item.total_pieces : item.quantity;
+                    totalQty += pcs;
                     totalAmt += parseFloat(item.subtotal);
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>
                             <div class="item-name">${item.item_type.toUpperCase()}</div>
-                            ${item.description ? `<div style="font-size:11px;color:#666;margin-top:4px">${(item.description||'').replace(/</g,'&lt;')}</div>` : ''}
+                            ${item.description ? `<div style="font-size:11px;color:#000;font-weight:600;margin-top:4px">${(item.description || '').replace(/</g, '&lt;')}</div>` : ''}
                         </td>
                         <td class="item-service">${item.service_name}</td>
+                        <td>${pcs}</td>
                         <td>${item.quantity}</td>
                         <td>${Number(item.subtotal).toLocaleString()}</td>
                     `;

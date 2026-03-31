@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     service_id INTEGER NOT NULL,
     item_type TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
+    total_pieces INTEGER NOT NULL DEFAULT 1,
     unit_price REAL NOT NULL,
     subtotal REAL NOT NULL,
     description TEXT DEFAULT NULL,
