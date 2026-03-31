@@ -67,6 +67,13 @@ CREATE TABLE IF NOT EXISTS sale_items (
     FOREIGN KEY (service_id) REFERENCES services(id)
 );
 
+-- 6. Pricelist Data Table (stores the full pricelist JSON)
+CREATE TABLE IF NOT EXISTS pricelist_data (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    data TEXT NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
 -- Insert default admin user (password: admin123)
 INSERT OR IGNORE INTO users (username, password, full_name, role) VALUES 
 ('admin', '$2b$10$i4Th.GpM1Wy.Al91suKjf.6Z0p6gEIt5o0ksQ251yoZawuIMi22oy', 'System Admin', 'admin');

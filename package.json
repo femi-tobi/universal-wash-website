@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-  "migrate": "node server/migrate.js",
+    "migrate": "node server/migrate.js",
+    "seed-pricelist": "node scripts/seed-pricelist.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

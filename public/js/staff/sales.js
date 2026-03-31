@@ -12,7 +12,7 @@ const SERVICE_ICONS = ['👔', '♨️', '⚡', '🧺'];
 // ─── Load price list from server ─────────────────────────────────────────────
 async function loadPricelist() {
     try {
-        const res = await fetch('/api/pricelist', { headers: getAuthHeaders() });
+        const res = await fetch('/api/pricelist?_t=' + Date.now(), { headers: getAuthHeaders(), cache: 'no-store' });
         const data = await res.json();
         PRICE_LIST = { male: data.male || [], female: data.female || [] };
         BULK_DISCOUNTS = data.bulkDiscounts || [];
@@ -242,8 +242,11 @@ document.getElementById('saleForm')?.addEventListener('submit', async (e) => {
         const descInput = document.querySelector(`.item-desc[data-item="${itemId}"]`);
         const description = descInput ? descInput.value.trim() : null;
 
+        // Map the UI service index to the backend database service ID (1: Wash, 2: Iron, 3: Dry Clean, 4: Wash & Iron)
+        const mappedServiceId = svcIndex + 1; 
+
         items.push({
-            service_id: 1,
+            service_id: mappedServiceId,
             item_type: `[${gender.toUpperCase()}] ${itemName} (${serviceTypeName})`,
             quantity,
             unit_price: parseFloat(discountedUnit.toFixed(2)),

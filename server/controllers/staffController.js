@@ -484,16 +484,7 @@ exports.getMySalesByMonth = async (req, res) => {
     try {
         const staffId = req.user.id;
         let salesM;
-        let hasPaymentMethodM = false;
-        try {
-            if (db.type === 'sqlite') {
-                const [info] = await db.query("SELECT * FROM pragma_table_info('sales')");
-                const names = (info || []).map(r => r.name);
-                hasPaymentMethodM = names.includes('payment_method');
-            } else {
-                hasPaymentMethodM = true;
-            }
-        } catch (e) { hasPaymentMethodM = false; }
+        const hasPaymentMethodM = await hasColumn('sales', 'payment_method');
 
         if (hasPaymentMethodM) {
             [salesM] = await db.query(

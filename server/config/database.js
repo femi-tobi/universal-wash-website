@@ -155,8 +155,7 @@ async function initializeDatabase() {
         } catch (err) {
             console.error('✗ PostgreSQL connection failed:', err.message);
             if (databaseUrl) {
-                // If DATABASE_URL was explicitly set but failed, we should not silently
-                // fall back — raise the error so the user knows something is wrong.
+         
                 throw err;
             }
             console.log('  Falling through to MySQL / SQLite...');
@@ -171,6 +170,7 @@ async function initializeDatabase() {
             user:             process.env.DB_USER     || 'root',
             password:         process.env.DB_PASSWORD || '',
             database:         process.env.DB_NAME     || 'laundry_db',
+            timezone:         '+01:00', // Force Nigeria Time (WAT)
             waitForConnections: true,
             connectionLimit:  10,
             queueLimit:       0
@@ -189,7 +189,6 @@ async function initializeDatabase() {
         console.log('   Reason:', err.message);
     }
 
-    // ── Fallback: SQLite ──────────────────────────────────────────────────────
     const Database = require('better-sqlite3');
     const dbPath   = path.join(__dirname, '../../laundry.db');
     const sqliteDb = new Database(dbPath);
@@ -216,7 +215,6 @@ async function initializeDatabase() {
     console.log('✓ SQLite database ready at:', dbPath);
     console.log('  Login → username: admin  password: admin123');
 
-    // ── SQLite adapter (mysql2-compatible API) ────────────────────────────────
     function extractArg(sql, pos) {
         let depth = 0, i = pos;
         while (i < sql.length) {

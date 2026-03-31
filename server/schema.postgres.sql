@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS sale_items (
     subtotal NUMERIC(10, 2) NOT NULL
 );
 
+-- 6. Pricelist Data Table (stores the full pricelist JSON)
+CREATE TABLE IF NOT EXISTS pricelist_data (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Seed default admin user (password: admin123)
 INSERT INTO users (username, password, full_name, role)
 VALUES ('admin', '$2b$10$i4Th.GpM1Wy.Al91suKjf.6Z0p6gEIt5o0ksQ251yoZawuIMi22oy', 'System Admin', 'admin')

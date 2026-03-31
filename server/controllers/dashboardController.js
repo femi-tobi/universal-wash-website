@@ -3,17 +3,19 @@ const db = require('../config/database');
 // Get daily revenue
 exports.getDailyRevenue = async (req, res) => {
     try {
+        const todayStr = new Date().toLocaleDateString('en-CA'); // Outputs "YYYY-MM-DD"
         const [result] = await db.query(
             `SELECT 
                 DATE(created_at) as date,
                 COALESCE(SUM(total_amount), 0) as revenue,
                 COUNT(*) as sales_count
             FROM sales 
-            WHERE DATE(created_at) = CURDATE()
-            GROUP BY DATE(created_at)`
+            WHERE DATE(created_at) = ?
+            GROUP BY DATE(created_at)`,
+            [todayStr]
         );
 
-        res.json(result[0] || { date: new Date().toISOString().split('T')[0], revenue: 0, sales_count: 0 });
+        res.json(result[0] || { date: todayStr, revenue: 0, sales_count: 0 });
     } catch (error) {
         console.error('Get daily revenue error:', error);
         res.status(500).json({ error: 'Failed to fetch daily revenue' });

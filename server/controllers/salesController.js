@@ -157,6 +157,7 @@ exports.createSale = async (req, res) => {
 // Get today's sales total
 exports.getDailySales = async (req, res) => {
     try {
+        const todayStr = new Date().toLocaleDateString('en-CA');
         const [result] = await db.query(
             `SELECT 
                 COUNT(*) as total_sales,
@@ -164,7 +165,8 @@ exports.getDailySales = async (req, res) => {
                 COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as paid_amount,
                 COALESCE(SUM(CASE WHEN payment_status = 'unpaid' THEN total_amount ELSE 0 END), 0) as unpaid_amount
             FROM sales 
-            WHERE DATE(created_at) = CURDATE()`
+            WHERE DATE(created_at) = ?`,
+            [todayStr]
         );
 
         res.json(result[0]);

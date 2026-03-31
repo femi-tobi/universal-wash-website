@@ -1,8 +1,6 @@
 -- Laundry Management System Database Schema
 -- Run this script to create all necessary tables
 
-CREATE DATABASE IF NOT EXISTS laundry_db;
-USE laundry_db;
 
 -- 1. Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -14,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    
 );
 
 -- 2. Services Table
@@ -64,6 +63,13 @@ CREATE TABLE IF NOT EXISTS sale_items (
     subtotal DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
     FOREIGN KEY (service_id) REFERENCES services(id)
+);
+
+-- 6. Pricelist Data Table (stores the full pricelist JSON)
+CREATE TABLE IF NOT EXISTS pricelist_data (
+    id INT PRIMARY KEY DEFAULT 1,
+    data JSON NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Insert default admin user (password: admin123)
