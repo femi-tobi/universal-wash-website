@@ -150,6 +150,55 @@
             background: #fef9c3;
             color: #854d0e;
         }
+
+        .name-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .add-item-btn {
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .add-item-btn:hover {
+            background: #4f46e5;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -177,16 +226,18 @@
                 <thead>
                     <tr>
                         <th class="sn">S/N</th>
-                        <th>Item</th>
+                        <th>Item Name</th>
                         <th>Base Price</th>
                         <th>Hanging</th>
                         <th>Pressing</th>
                         <th>Express</th>
+                        <th>Washing / Base</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="priceBody">
                     <tr>
-                        <td colspan="6" class="text-center">Loading...</td>
+                        <td colspan="8" class="text-center">Loading...</td>
                     </tr>
                 </tbody>
             </table>
@@ -239,18 +290,37 @@
             let sn = 1;
 
             ['male', 'female'].forEach(gender => {
-                html += `<tr class="section-header"><td colspan="6">${gender === 'male' ? '👨 MEN' : '👩 WOMEN'}</td></tr>`;
+                html += `
+                    <tr class="section-header">
+                        <td colspan="8">${gender === 'male' ? '👨 MEN' : '👩 WOMEN'}</td>
+                    </tr>`;
                 priceData[gender].forEach((item, idx) => {
                     html += `
                         <tr>
                             <td class="sn">${sn++}</td>
-                            <td><strong>${item.name}</strong></td>
+                            <td>
+                                <input type="text" class="name-input" data-gender="${gender}" data-idx="${idx}" data-col="name" value="${item.name}">
+                            </td>
                             <td class="price-cell">${priceInput(gender, idx, 'base', item.base)}</td>
                             <td class="price-cell">${priceInput(gender, idx, 0, item.prices[0])}</td>
                             <td class="price-cell">${priceInput(gender, idx, 1, item.prices[1])}</td>
                             <td class="price-cell">${priceInput(gender, idx, 2, item.prices[2])}</td>
+                            <td class="price-cell">${priceInput(gender, idx, 3, item.prices[3] || item.base)}</td>
+                            <td>
+                                <button class="delete-btn" onclick="deleteItem('${gender}', ${idx})">🗑️ Delete</button>
+                            </td>
                         </tr>`;
                 });
+                // Add the "New Line" button at the end of each section
+                html += `
+                    <tr>
+                        <td colspan="8" style="background: #f1f5f9; text-align: center; padding: 12px;">
+                            <button class="add-item-btn" style="padding: 8px 30px; font-size: 14px;" onclick="addNewItem('${gender}')">
+                                ➕ Add New Line for ${gender === 'male' ? 'Men' : 'Women'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
             });
 
             // Bulk discount rows
@@ -259,12 +329,12 @@
                 html += `
                     <tr class="bulk-row">
                         <td class="sn">${i + 1}</td>
-                        <td colspan="3">
+                        <td colspan="2">
                             <input type="text" class="bulk-label-input" data-bulk="${i}" data-field="label"
                                 value="${rule.label}" placeholder="Discount description">
                         </td>
                         <td>
-                            <label style="font-size:12px;display:block;margin-bottom:2px;">Min Garments</label>
+                            <label style="font-size:12px;display:block;margin-bottom:2px;">Min Items</label>
                             <input type="number" class="price-input" style="width:80px;" data-bulk="${i}" data-field="threshold"
                                 value="${rule.threshold}" min="1">
                         </td>
@@ -273,21 +343,41 @@
                             <input type="number" class="price-input" style="width:70px;" data-bulk="${i}" data-field="discountPct"
                                 value="${rule.discountPct}" min="0" max="100">
                         </td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteBulkRule(${i})">🗑️</button>
+                        </td>
                     </tr>`;
             });
+            
+            // Add Bulk Discount button at the end
+            html += `
+                <tr>
+                    <td colspan="6" style="background: #f1f5f9; text-align: center; padding: 12px;">
+                        <button class="add-item-btn" style="padding: 8px 30px; font-size: 14px;" onclick="addNewBulkRule()">
+                            ➕ Add New Discount Rule
+                        </button>
+                    </td>
+                </tr>
+            `;
 
             tbody.innerHTML = html;
         }
 
         function collectData() {
-            // Collect item prices
-            document.querySelectorAll('.price-input[data-gender]').forEach(input => {
+            // Collect item prices and names
+            document.querySelectorAll('[data-gender][data-idx]').forEach(input => {
                 const { gender, idx, col } = input.dataset;
-                const val = input.value === '' ? null : parseFloat(input.value);
-                if (col === 'base') {
-                    priceData[gender][idx].base = val;
+                const i = parseInt(idx);
+                
+                if (col === 'name') {
+                    priceData[gender][i].name = input.value;
                 } else {
-                    priceData[gender][idx].prices[parseInt(col)] = val;
+                    const val = input.value === '' ? null : parseFloat(input.value);
+                    if (col === 'base') {
+                        priceData[gender][i].base = val;
+                    } else {
+                        priceData[gender][i].prices[parseInt(col)] = val;
+                    }
                 }
             });
 
@@ -332,6 +422,43 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '💾 Save All Changes';
+            }
+        }
+
+        function addNewItem(gender) {
+            collectData(); // Save current state of inputs
+            priceData[gender].push({
+                name: "New Item",
+                base: 1000,
+                prices: [1200, 800, 1500, 1000]
+            });
+            renderTable();
+        }
+
+        function deleteItem(gender, idx) {
+            if (confirm(`Are you sure you want to delete "${priceData[gender][idx].name}"?`)) {
+                collectData(); // Save current state of inputs
+                priceData[gender].splice(idx, 1);
+                renderTable();
+            }
+        }
+
+        function addNewBulkRule() {
+            collectData();
+            if (!priceData.bulkDiscounts) priceData.bulkDiscounts = [];
+            priceData.bulkDiscounts.push({
+                label: "New Bulk Rule",
+                threshold: 40,
+                discountPct: 5
+            });
+            renderTable();
+        }
+
+        function deleteBulkRule(idx) {
+            if (confirm(`Delete this discount rule?`)) {
+                collectData();
+                priceData.bulkDiscounts.splice(idx, 1);
+                renderTable();
             }
         }
 
