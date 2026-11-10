@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Sale - Laundry Management</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        /* ── Service-type & gender selector cards ── */
+        .selector-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .selector-card {
+            flex: 1;
+            min-width: 120px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .selector-card:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .selector-card.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        .selector-card .icon {
+            font-size: 26px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        /* ── Per-item service pills ── */
+        .svc-pill-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .svc-pill {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            color: var(--text-secondary);
+            transition: all 0.18s ease;
+        }
+
+        .svc-pill:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .svc-pill.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ── Excel-like row for items ── */
+        .excel-row {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr 1.6fr 0.6fr 0.7fr 0.8fr 0.8fr 1.2fr 45px 1.1fr 38px;
+            gap: 8px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .excel-header {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr 1.6fr 0.6fr 0.7fr 0.8fr 0.8fr 1.2fr 45px 1.1fr 38px;
+            gap: 8px;
+            padding: 0 12px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .excel-row .form-group {
+            margin-bottom: 0 !important;
+        }
+
+        .excel-row label {
+            display: none;
+            /* Hide labels inside the row to match the excel style */
+        }
+
+        .excel-row input,
+        .excel-row select {
+            padding: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🧺 Create New Sale</h1>
+        <div class="user-info">
+            <a href="pricelist.html"><button class="btn btn-secondary">🏷️ Price List</button></a>
+            <a href="dashboard.html"><button class="btn btn-secondary">← Back</button></a>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="hidden"></div>
+
+        <div class="card">
+            <h2 class="mb-3">Customer Information</h2>
+
+            <form id="saleForm">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="customerPhone">Phone Number</label>
+                        <input type="tel" id="customerPhone" placeholder="e.g., 0801234567">
+                        <small style="color: var(--text-secondary);">Customer name will auto-fill if exists</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerName">Customer Name *</label>
+                        <input type="text" id="customerName" required placeholder="Full name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerAddress">Customer Address</label>
+                    <input type="text" id="customerAddress" placeholder="e.g., 12 Main Street, Egbeda">
+                </div>
+
+                <hr style="margin: 24px 0; border: 1px solid var(--border-color);">
+
+                <!-- ── Delivery Option ── -->
+                <h2 class="mb-3">Delivery Options</h2>
+
+                        <div style="margin-bottom: 24px; max-width: 500px;">
+                            <p class="section-label">🚚 Delivery Option</p>
+                            <select id="deliveryType" class="form-group"
+                                style="padding: 12px; font-size: 15px; width: 100%; border: 2px solid var(--border-color); border-radius: 8px;">
+                                <option value="pickup">Pickup (No Fee)</option>
+                                <option value="dispatch">Dispatch (Add Fee)</option>
+                            </select>
+
+                            <div id="dispatchFeeGroup" style="display: none; margin-top: 12px;">
+                                <label>Dispatch Fee (NGN) *</label>
+                                <input type="number" id="dispatchFee" min="0" step="1" placeholder="Enter fee amount..."
+                                    style="padding: 10px; font-size: 15px; width: 100%;">
+                            </div>
+                        </div>
+
+                        <hr style="margin: 24px 0; border: 1px solid var(--border-color);">
+
+                        <h2 class="mb-3">Service Items</h2>
+
+                        <div class="excel-header">
+                            <div>Service Type</div>
+                            <div>Gender</div>
+                            <div>Clothing Item</div>
+                            <div>Pcs</div>
+                            <div>Bill Qty</div>
+                            <div>Stain (₦)</div>
+                            <div>Amend (₦)</div>
+                            <div>Description</div>
+                            <div>Expr</div>
+                            <div>Subtotal</div>
+                            <div></div>
+                        </div>
+                        <div id="itemsContainer"></div>
+
+                        <button type="button" class="btn btn-success" onclick="addItemRow()">
+                            ➕ Add Item
+                        </button>
+
+                        <hr style="margin: 24px 0; border: 1px solid var(--border-color);">
+
+                        <div class="grid grid-2" style="margin-top: 24px;">
+                            <div>
+                                <h3>Total Amount</h3>
+                                <div style="font-size: 36px; font-weight: 700; color: var(--primary-color);"
+                                    id="totalAmount">
+                                    NGN 0
+                                </div>
+                                <div id="discountInfo" style="display:none; margin-top: 8px; font-size: 14px;"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="paymentStatus">Payment Status *</label>
+                                <select id="paymentStatus" required style="font-size: 18px; padding: 16px;">
+                                    <option value="paid">✅ Paid</option>
+                                    <option value="unpaid">⏳ Unpaid</option>
+                                    <option value="partpaid">💳 Part-Paid</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="paymentMethodGroup" class="form-group" style="margin-top:12px; display:none;">
+                            <label for="paymentMethod">Payment Method</label>
+                            <select id="paymentMethod" style="font-size:16px;padding:10px;">
+                                <option value="cash">Cash</option>
+                                <option value="pos">POS</option>
+                                <option value="transfer">Transfer</option>
+                            </select>
+                            <small style="display:block;color:var(--text-secondary);margin-top:6px">Choose how the
+                                customer
+                                paid</small>
+                        </div>
+
+                        <div id="amountPaidGroup" class="form-group" style="margin-top:12px; display:none;">
+                            <label for="amountPaid">Amount Paid (NGN) *</label>
+                            <input type="number" id="amountPaid" min="0" step="0.01"
+                                style="font-size:16px;padding:10px;">
+                        </div>
+
+                        <div id="owingGroup" class="form-group" style="margin-top:12px; display:none;">
+                            <label>Owing Balance</label>
+                            <div id="owingBalance" style="font-size: 20px; font-weight: 700; color: var(--red);">NGN 0
+                            </div>
+                        </div>
+
+                        <div class="grid grid-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-block"
+                                style="min-height: 70px; font-size: 20px;">
+                                💾 Save Sale
+                            </button>
+                            <button type="button" onclick="window.location.href='dashboard.html'"
+                                class="btn btn-secondary btn-block" style="min-height: 70px; font-size: 20px;">
+                                ❌ Cancel
+                            </button>
+                        </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/staff/sales.js?v=2"></script>
+    <script>
+        // Delivery option toggle
+        document.getElementById('deliveryType').addEventListener('change', function () {
+            const feeGroup = document.getElementById('dispatchFeeGroup');
+            if (this.value === 'dispatch') {
+                feeGroup.style.display = 'block';
+            } else {
+                feeGroup.style.display = 'none';
+                document.getElementById('dispatchFee').value = '';
+                if (typeof calculateTotal === 'function') calculateTotal();
+            }
+        });
+
+        document.getElementById('dispatchFee').addEventListener('input', function () {
+            if (typeof calculateTotal === 'function') calculateTotal();
+        });
+    </script>
+</body>
+
+</html>

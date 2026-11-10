@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Price List - Universal Wash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --blue: #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-light: #eff6ff;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --amber: #d97706;
+            --amber-light: #fffbeb;
+            --red: #dc2626;
+            --red-light: #fef2f2;
+            --purple: #7c3aed;
+            --purple-light: #f5f3ff;
+            --sidebar-w: 220px;
+            --header-h: 64px;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .sidebar-brand .brand-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--blue);
+            line-height: 1.2;
+        }
+
+        .sidebar-brand .brand-sub {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            padding: 8px 8px 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .nav-item.active {
+            background: var(--blue-light);
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* ── Main ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            height: var(--header-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .topbar-date {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-logout:hover {
+            background: var(--red-light);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        /* ── Page content ── */
+        .page {
+            padding: 28px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        /* ── Page Header Card ── */
+        .header-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .header-info h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-info p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: var(--amber-light);
+            color: var(--amber);
+            border: 1px solid #fde68a;
+        }
+
+        .badge-approved {
+            background: var(--green-light);
+            color: var(--green);
+            border: 1px solid #bbf7d0;
+        }
+
+        .badge-rejected {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1px solid #fecaca;
+        }
+
+        /* ── Alert banners ── */
+        .banner {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .banner-warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .banner-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        /* ── Content Card ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 260px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-dark);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        /* ── Price Table ── */
+        .table-responsive {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .price-table th {
+            background: #f8fafc;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .price-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .price-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .section-header-row td {
+            background: #0f172a !important;
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            padding: 10px 16px;
+        }
+
+        .price-input {
+            width: 95px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .price-input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Input modified indicator */
+        .price-input.modified {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
+            font-weight: 700;
+        }
+
+        .name-input {
+            width: 100%;
+            min-width: 160px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+        }
+
+        .name-input.modified {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+
+        .delete-btn:hover {
+            background: var(--red-light);
+            color: var(--red);
+            border-color: #fca5a5;
+        }
+
+        .add-row-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px dashed var(--blue);
+            background: var(--blue-light);
+            color: var(--blue);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 8px 0;
+        }
+
+        .add-row-btn:hover {
+            background: #dbeafe;
+        }
+
+        /* ── Changes Bar ── */
+        .changes-floating-bar {
+            position: sticky;
+            bottom: 20px;
+            background: #1e293b;
+            color: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            z-index: 90;
+            margin-top: 24px;
+        }
+
+        .changes-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .changes-count-pill {
+            background: #f59e0b;
+            color: #1e293b;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* ── Requests History ── */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f8fafc;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+        }
+
+        /* ── Diff tags ── */
+        .diff-tag {
+            font-family: monospace;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .diff-old {
+            background: #fee2e2;
+            color: #991b1b;
+            text-decoration: line-through;
+        }
+
+        .diff-new {
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .page {
+                padding: 16px;
+            }
+
+            .changes-floating-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/logo2.jpeg" alt="Logo" onerror="this.style.display='none'">
+            <div>
+                <div class="brand-name">Universal Wash</div>
+                <div class="brand-sub">Laundry Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Menu</div>
+            <a class="nav-item" href="dashboard.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                Dashboard
+            </a>
+            <a class="nav-item" href="new-sale.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                New Sale
+            </a>
+            <a class="nav-item" href="owings.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
+                    <path d="M12 6v6l4 2" />
+                </svg>
+                Owings
+            </a>
+            <a class="nav-item" href="daily-report.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                </svg>
+                Daily Report
+            </a>
+            <a class="nav-item active" href="pricelist.html">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                My Price List
+                <span id="navPendingBadge" style="display:none;margin-left:auto;background:var(--amber);color:white;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:700;">Pending</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <div class="user-avatar" id="userInitial">S</div>
+                <div>
+                    <div class="user-name" id="staffName">Staff</div>
+                    <div class="user-role">Staff Member</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+        <header class="topbar">
+            <div>
+                <div class="topbar-title">Price List &amp; Review</div>
+                <div class="topbar-date" id="todayDate"></div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </button>
+        </header>
+
+        <div class="page">
+            <div id="alert" style="display:none;padding:12px 18px;border-radius:8px;margin-bottom:20px;font-size:14px;font-weight:500;"></div>
+
+            <!-- Page Header Card -->
+            <div class="header-card">
+                <div class="header-info">
+                    <h2>
+                        🏷️ My Assigned Price List
+                        <span id="statusBadge" class="badge badge-approved">Active Live Prices</span>
+                    </h2>
+                    <p>Review the specific prices configured for your sales, make adjustments, and submit them for admin approval.</p>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-secondary" onclick="loadPriceData()">
+                        🔄 Reload Live Prices
+                    </button>
+                    <a href="#historySection" class="btn btn-secondary">
+                        📋 View Past Requests
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pending Request Alert Banner if exists -->
+            <div id="pendingBanner" class="banner banner-warning" style="display:none;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:22px;">⏳</span>
+                    <div>
+                        <strong style="font-weight:700;">Price Update Request Pending Admin Review</strong>
+                        <div id="pendingBannerDetails" style="font-size:12px;margin-top:2px;color:#78350f;">
+                            Submitted on <span id="pendingBannerDate">—</span>. Your active sales will continue using your current live prices until the admin approves.
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="background:#fff;font-size:12px;" onclick="viewCurrentPendingDiff()">
+                    View Submitted Changes
+                </button>
+            </div>
+
+            <!-- Price Editor Card -->
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Filter items (e.g. shirt, suit)..." oninput="filterTable()">
+                    </div>
+
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <span id="changesSummaryText" style="font-size:13px;color:var(--muted);font-weight:600;">
+                            No unsaved edits
+                        </span>
+                        <button class="btn btn-secondary" id="resetBtn" style="display:none;" onclick="resetEdits()">
+                            ↺ Discard Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="price-table" id="priceTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;">S/N</th>
+                                <th style="min-width: 220px;">Item Name</th>
+                                <th style="text-align: right; width: 110px;">Base Price (₦)</th>
+                                <th style="text-align: right; width: 110px;">Hanging (₦)</th>
+                                <th style="text-align: right; width: 110px;">Pressing (₦)</th>
+                                <th style="text-align: right; width: 110px;">Washing &amp; Press (₦)</th>
+                                <th style="text-align: right; width: 110px;">Pressing &amp; Hang (₦)</th>
+                                <th style="width: 70px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceBody">
+                            <tr>
+                                <td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">
+                                    Loading price list...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Floating Submission Action Bar (Visible when staff has unsaved changes) -->
+            <div id="changesBar" class="changes-floating-bar" style="display:none;">
+                <div class="changes-info">
+                    <span class="changes-count-pill" id="barChangesCount">0 changes</span>
+                    <div>
+                        <div style="font-weight:700;font-size:14px;">You have modified your price list</div>
+                        <div style="font-size:12px;color:#94a3b8;">Submit these proposed prices for admin approval</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;">
+                    <button class="btn btn-secondary" style="background:#334155;color:white;border-color:#475569;" onclick="resetEdits()">
+                        Discard
+                    </button>
+                    <button class="btn btn-success" onclick="openSubmitModal()">
+                        🚀 Submit for Approval
+                    </button>
+                </div>
+            </div>
+
+            <!-- Past Submissions History Section -->
+            <div class="card" id="historySection" style="margin-top:32px;">
+                <div class="toolbar">
+                    <div>
+                        <h3 style="font-size:16px;font-weight:700;">📜 Price Change Request History</h3>
+                        <p style="font-size:12px;color:var(--muted);margin-top:2px;">Track past approvals, rejections, and notes from the administrator.</p>
+                    </div>
+                    <button class="btn btn-secondary" style="font-size:12px;" onclick="loadHistory()">
+                        Refresh History
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Submitted Date</th>
+                                <th>Changes</th>
+                                <th>Staff Note</th>
+                                <th>Status</th>
+                                <th>Admin Feedback</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Submit Modal -->
+    <div id="submitModal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Submit Prices for Admin Approval</h3>
+                <button onclick="closeSubmitModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--muted);">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalDiffSummary" style="margin-bottom:18px;"></div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">
+                        Reason for Price Changes (Optional note to Admin):
+                    </label>
+                    <textarea id="staffNoteInput" rows="3" placeholder="e.g. Adjusted laundry and ironing rates due to recent fuel & detergent cost updates..."
+                        style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
+                </div>
+
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:12px;color:#1e40af;">
+                    ℹ️ <strong>Note:</strong> Your existing active prices will stay active until an administrator reviews and approves this request.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSubmitModal()">Cancel</button>
+                <button class="btn btn-success" id="confirmSubmitBtn" onclick="submitRequestForApproval()">
+                    Confirm &amp; Submit Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Diff Details Modal -->
+    <div id="diffModal" class="modal-overlay" style="display:none;">
+        <div class="modal" style="max-width:700px;">
+            <div class="modal-header">
+                <h3 id="diffModalTitle">Request Details</h3>
+                <button onclick="closeDiffModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--muted);">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="diffModalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDiffModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        checkAuth();
+
+        const user = getCurrentUser();
+        if (user) {
+            document.getElementById('staffName').textContent = user.full_name || user.username || 'Staff';
+            document.getElementById('userInitial').textContent = (user.full_name || user.username || 'S')[0].toUpperCase();
+        }
+
+        document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+        });
+
+        // Price data state
+        let originalPricelist = { male: [], female: [], bulkDiscounts: [] };
+        let workingPricelist = { male: [], female: [], bulkDiscounts: [] };
+        let historyRequests = [];
+        let activePendingRequest = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPriceData();
+            loadHistory();
+            checkPendingStatus();
+        });
+
+        function showNotification(msg, type = 'success') {
+            const el = document.getElementById('alert');
+            el.style.display = 'block';
+            if (type === 'success') {
+                el.style.background = '#f0fdf4';
+                el.style.color = '#166534';
+                el.style.border = '1px solid #bbf7d0';
+            } else {
+                el.style.background = '#fef2f2';
+                el.style.color = '#991b1b';
+                el.style.border = '1px solid #fecaca';
+            }
+            el.textContent = msg;
+            setTimeout(() => { el.style.display = 'none'; }, 6000);
+        }
+
+        function formatErrorMessage(err, defaultMsg) {
+            if (!navigator.onLine || (err && (err.message === 'Failed to fetch' || err.name === 'TypeError'))) {
+                return '📶 No internet connection or server unreachable. Please check your network and try again.';
+            }
+            return (err && err.message) ? `${defaultMsg}: ${err.message}` : defaultMsg;
+        }
+
+        async function checkPendingStatus() {
+            try {
+                const res = await fetch('/api/pricelist/my-pending-count?_t=' + Date.now(), { headers: getAuthHeaders() });
+                const data = await res.json();
+                const badge = document.getElementById('navPendingBadge');
+                if (data.count > 0) {
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) {}
+        }
+
+        async function loadPriceData() {
+            try {
+                const res = await fetch('/api/pricelist?_t=' + Date.now(), { headers: getAuthHeaders(), cache: 'no-store' });
+                if (!res.ok) throw new Error('Could not load price list');
+                const data = await res.json();
+                
+                // Deep clone into original and working copies
+                originalPricelist = JSON.parse(JSON.stringify(data));
+                workingPricelist = JSON.parse(JSON.stringify(data));
+                
+                renderTable();
+                updateChangesIndicator();
+            } catch (err) {
+                console.error(err);
+                showNotification(formatErrorMessage(err, 'Failed to load price list'), 'error');
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('priceBody');
+            let html = '';
+            let sn = 1;
+
+            ['male', 'female'].forEach(gender => {
+                const genderTitle = gender === 'male' ? '👔 MEN GARMENTS' : '👗 WOMEN GARMENTS';
+                html += `
+                    <tr class="section-header-row">
+                        <td colspan="8">${genderTitle}</td>
+                    </tr>
+                `;
+
+                const items = workingPricelist[gender] || [];
+                const origItems = originalPricelist[gender] || [];
+
+                items.forEach((item, idx) => {
+                    const origItem = origItems[idx] || {};
+                    const isNameModified = origItem.name !== undefined && origItem.name !== item.name;
+
+                    const renderPriceCell = (col, val, origVal) => {
+                        const numVal = (val === null || val === undefined || val === '') ? '' : val;
+                        const origNum = (origVal === null || origVal === undefined || origVal === '') ? '' : origVal;
+                        const isModified = String(numVal) !== String(origNum);
+
+                        return `
+                            <input type="number" min="0" step="1"
+                                class="price-input ${isModified ? 'modified' : ''}"
+                                data-gender="${gender}" data-idx="${idx}" data-col="${col}"
+                                value="${numVal}"
+                                placeholder="—"
+                                title="${isModified ? 'Original: ₦' + (origNum || 0) : ''}"
+                                oninput="onPriceCellChange(this)"
+                            >
+                        `;
+                    };
+
+                    const origPrices = origItem.prices || [];
+                    const prices = item.prices || [];
+
+                    html += `
+                        <tr class="item-row" data-search="${(item.name || '').toLowerCase()}">
+                            <td style="text-align:center;color:var(--muted);font-size:12px;">${sn++}</td>
+                            <td>
+                                <input type="text"
+                                    class="name-input ${isNameModified ? 'modified' : ''}"
+                                    data-gender="${gender}" data-idx="${idx}" data-col="name"
+                                    value="${item.name || ''}"
+                                    title="${isNameModified ? 'Original: ' + origItem.name : ''}"
+                                    oninput="onNameCellChange(this)"
+                                >
+                            </td>
+                            <td style="text-align:right;">${renderPriceCell('base', item.base, origItem.base)}</td>
+                            <td style="text-align:right;">${renderPriceCell('0', prices[0], origPrices[0])}</td>
+                            <td style="text-align:right;">${renderPriceCell('1', prices[1], origPrices[1])}</td>
+                            <td style="text-align:right;">${renderPriceCell('2', prices[2], origPrices[2])}</td>
+                            <td style="text-align:right;">${renderPriceCell('3', prices[3], origPrices[3])}</td>
+                            <td style="text-align:center;">
+                                <button class="delete-btn" onclick="deleteItem('${gender}', ${idx})" title="Delete row">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                    <tr>
+                        <td colspan="8" style="background:#f8fafc;text-align:center;padding:10px;">
+                            <button class="add-row-btn" onclick="addNewItem('${gender}')">
+                                ➕ Add New ${gender === 'male' ? 'Men' : 'Women'} Item
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function onPriceCellChange(el) {
+            const gender = el.dataset.gender;
+            const idx = parseInt(el.dataset.idx);
+            const col = el.dataset.col;
+            const val = el.value === '' ? null : parseFloat(el.value);
+
+            if (col === 'base') {
+                workingPricelist[gender][idx].base = val;
+            } else {
+                if (!workingPricelist[gender][idx].prices) workingPricelist[gender][idx].prices = [];
+                workingPricelist[gender][idx].prices[parseInt(col)] = val;
+            }
+
+            // Check if modified compared to original
+            const origItem = (originalPricelist[gender] && originalPricelist[gender][idx]) || {};
+            let origVal;
+            if (col === 'base') {
+                origVal = origItem.base;
+            } else {
+                origVal = origItem.prices ? origItem.prices[parseInt(col)] : null;
+            }
+
+            const numVal = (val === null || val === undefined) ? '' : val;
+            const origNum = (origVal === null || origVal === undefined) ? '' : origVal;
+            const isMod = String(numVal) !== String(origNum);
+            el.classList.toggle('modified', isMod);
+
+            updateChangesIndicator();
+        }
+
+        function onNameCellChange(el) {
+            const gender = el.dataset.gender;
+            const idx = parseInt(el.dataset.idx);
+            workingPricelist[gender][idx].name = el.value;
+
+            const origItem = (originalPricelist[gender] && originalPricelist[gender][idx]) || {};
+            const isMod = origItem.name !== el.value;
+            el.classList.toggle('modified', isMod);
+
+            updateChangesIndicator();
+        }
+
+        function addNewItem(gender) {
+            workingPricelist[gender].push({
+                name: 'New Laundry Item',
+                base: 1000,
+                prices: [1500, 700, 1800, 1500]
+            });
+            renderTable();
+            updateChangesIndicator();
+        }
+
+        function deleteItem(gender, idx) {
+            if (confirm(`Remove "${workingPricelist[gender][idx].name}" from your price proposal?`)) {
+                workingPricelist[gender].splice(idx, 1);
+                renderTable();
+                updateChangesIndicator();
+            }
+        }
+
+        function resetEdits() {
+            if (confirm('Discard all unsaved edits and reset back to your active live prices?')) {
+                workingPricelist = JSON.parse(JSON.stringify(originalPricelist));
+                renderTable();
+                updateChangesIndicator();
+            }
+        }
+
+        function calculateDiffs() {
+            const changes = [];
+            const labels = ['Hanging', 'Pressing', 'Washing & Press', 'Pressing & Hang'];
+
+            ['male', 'female'].forEach(gender => {
+                const orig = originalPricelist[gender] || [];
+                const work = workingPricelist[gender] || [];
+                const genderName = gender === 'male' ? 'Men' : 'Women';
+
+                orig.forEach((oItem, i) => {
+                    const wItem = work[i];
+                    if (!wItem) {
+                        changes.push({
+                            type: 'removed',
+                            desc: `Removed ${genderName} item "${oItem.name}"`
+                        });
+                        return;
+                    }
+
+                    if (oItem.name !== wItem.name) {
+                        changes.push({
+                            type: 'rename',
+                            desc: `Renamed "${oItem.name}" ➔ "${wItem.name}"`
+                        });
+                    }
+
+                    const oBase = oItem.base || 0;
+                    const wBase = wItem.base || 0;
+                    if (oBase !== wBase) {
+                        changes.push({
+                            type: 'price',
+                            item: wItem.name,
+                            field: 'Base Price',
+                            oldVal: oBase,
+                            newVal: wBase
+                        });
+                    }
+
+                    const oPrices = oItem.prices || [];
+                    const wPrices = wItem.prices || [];
+                    for (let p = 0; p < 4; p++) {
+                        const op = oPrices[p] || 0;
+                        const wp = wPrices[p] || 0;
+                        if (op !== wp) {
+                            changes.push({
+                                type: 'price',
+                                item: wItem.name,
+                                field: labels[p] || `Price ${p+1}`,
+                                oldVal: op,
+                                newVal: wp
+                            });
+                        }
+                    }
+                });
+
+                if (work.length > orig.length) {
+                    for (let j = orig.length; j < work.length; j++) {
+                        changes.push({
+                            type: 'added',
+                            desc: `Added new ${genderName} item "${work[j].name}" (Base ₦${work[j].base || 0})`
+                        });
+                    }
+                }
+            });
+
+            return changes;
+        }
+
+        function updateChangesIndicator() {
+            const diffs = calculateDiffs();
+            const count = diffs.length;
+
+            const bar = document.getElementById('changesBar');
+            const summaryText = document.getElementById('changesSummaryText');
+            const resetBtn = document.getElementById('resetBtn');
+
+            if (count > 0) {
+                bar.style.display = 'flex';
+                resetBtn.style.display = 'inline-flex';
+                document.getElementById('barChangesCount').textContent = `${count} change${count === 1 ? '' : 's'}`;
+                summaryText.innerHTML = `<span style="color:#d97706;font-weight:700;">✏️ ${count} unsaved edit${count === 1 ? '' : 's'}</span>`;
+            } else {
+                bar.style.display = 'none';
+                resetBtn.style.display = 'none';
+                summaryText.textContent = 'All prices match active list';
+            }
+        }
+
+        function filterTable() {
+            const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            document.querySelectorAll('.item-row').forEach(row => {
+                const searchStr = row.dataset.search || '';
+                row.style.display = searchStr.includes(query) ? '' : 'none';
+            });
+        }
+
+        function collectWorkingData() {
+            // Guarantee workingPricelist reflects the actual current values in the input fields
+            document.querySelectorAll('#priceBody input[data-gender][data-idx]').forEach(input => {
+                const { gender, idx, col } = input.dataset;
+                const i = parseInt(idx);
+                if (!workingPricelist[gender] || !workingPricelist[gender][i]) return;
+                
+                if (col === 'name') {
+                    workingPricelist[gender][i].name = input.value;
+                } else {
+                    const val = input.value === '' ? null : parseFloat(input.value);
+                    if (col === 'base') {
+                        workingPricelist[gender][i].base = val;
+                    } else {
+                        if (!workingPricelist[gender][i].prices) workingPricelist[gender][i].prices = [];
+                        workingPricelist[gender][i].prices[parseInt(col)] = val;
+                    }
+                }
+            });
+            return workingPricelist;
+        }
+
+        function openSubmitModal() {
+            collectWorkingData();
+            const diffs = calculateDiffs();
+            if (diffs.length === 0) {
+                alert('No price changes were made.');
+                return;
+            }
+
+            let diffHtml = `
+                <div style="font-weight:700;margin-bottom:10px;font-size:13px;">Summary of Changes (${diffs.length}):</div>
+                <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px 12px;background:#f8fafc;">
+            `;
+
+            diffs.forEach(d => {
+                if (d.type === 'price') {
+                    const diffNum = d.newVal - d.oldVal;
+                    const diffSign = diffNum > 0 ? `+₦${diffNum.toLocaleString()}` : `-₦${Math.abs(diffNum).toLocaleString()}`;
+                    const diffColor = diffNum > 0 ? '#16a34a' : '#dc2626';
+
+                    diffHtml += `
+                        <div style="padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:12px;display:flex;align-items:center;justify-content:space-between;">
+                            <div>
+                                <strong>${d.item}</strong> (${d.field})
+                            </div>
+                            <div>
+                                <span class="diff-tag diff-old">₦${d.oldVal.toLocaleString()}</span>
+                                ➔
+                                <span class="diff-tag diff-new">₦${d.newVal.toLocaleString()}</span>
+                                <span style="font-size:11px;font-weight:700;color:${diffColor};margin-left:6px;">(${diffSign})</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    diffHtml += `
+                        <div style="padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:12px;color:#0f172a;">
+                            📌 ${d.desc}
+                        </div>
+                    `;
+                }
+            });
+
+            diffHtml += `</div>`;
+            document.getElementById('modalDiffSummary').innerHTML = diffHtml;
+            document.getElementById('submitModal').style.display = 'flex';
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').style.display = 'none';
+        }
+
+        async function submitRequestForApproval() {
+            collectWorkingData();
+            const btn = document.getElementById('confirmSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const notes = document.getElementById('staffNoteInput').value;
+
+            try {
+                const res = await fetch('/api/pricelist/request', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        data: workingPricelist,
+                        notes: notes
+                    })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    closeSubmitModal();
+                    showNotification('✅ ' + result.message, 'success');
+                    document.getElementById('staffNoteInput').value = '';
+                    
+                    // Reload data and history
+                    loadPriceData();
+                    loadHistory();
+                    checkPendingStatus();
+                } else {
+                    alert(result.error || 'Failed to submit price request');
+                }
+            } catch (err) {
+                alert(formatErrorMessage(err, 'Could not send price request'));
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Submit Request';
+            }
+        }
+
+        async function loadHistory() {
+            const tbody = document.getElementById('historyBody');
+            try {
+                const res = await fetch('/api/pricelist/my-requests?_t=' + Date.now(), { headers: getAuthHeaders() });
+                if (!res.ok) throw new Error('Failed to load history');
+                historyRequests = await res.json();
+
+                // Check if any is pending
+                const pending = historyRequests.find(r => r.status === 'pending');
+                activePendingRequest = pending;
+
+                const pendingBanner = document.getElementById('pendingBanner');
+                if (pending) {
+                    pendingBanner.style.display = 'flex';
+                    const dateStr = new Date(pending.created_at).toLocaleString();
+                    document.getElementById('pendingBannerDate').textContent = dateStr;
+                } else {
+                    pendingBanner.style.display = 'none';
+                }
+
+                if (historyRequests.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">No price requests submitted yet.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                historyRequests.forEach((req, idx) => {
+                    const date = new Date(req.created_at).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+
+                    let statusBadge = '';
+                    if (req.status === 'pending') {
+                        statusBadge = `<span class="badge badge-pending">⏳ Pending Review</span>`;
+                    } else if (req.status === 'approved') {
+                        statusBadge = `<span class="badge badge-approved">✅ Approved</span>`;
+                    } else {
+                        statusBadge = `<span class="badge badge-rejected">❌ Rejected</span>`;
+                    }
+
+                    html += `
+                        <tr>
+                            <td style="font-weight:600;white-space:nowrap;">${date}</td>
+                            <td>
+                                <span style="font-weight:700;color:var(--blue);">${req.changesCount} item(s)</span>
+                            </td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--text);font-size:12px;">
+                                ${req.notes || '<span style="color:var(--muted)">—</span>'}
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td style="font-size:12px;color:${req.status === 'rejected' ? '#dc2626' : 'var(--text)'};">
+                                ${req.admin_notes || '<span style="color:var(--muted)">—</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="viewRequestDiff(${idx})">
+                                    View Edits
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px;">${formatErrorMessage(err, 'Failed to load history')}</td></tr>`;
+            }
+        }
+
+        function viewCurrentPendingDiff() {
+            if (!activePendingRequest) return;
+            renderDiffModal(activePendingRequest);
+        }
+
+        function viewRequestDiff(idx) {
+            const req = historyRequests[idx];
+            if (!req) return;
+            renderDiffModal(req);
+        }
+
+        function renderDiffModal(req) {
+            document.getElementById('diffModalTitle').textContent = `Request #${req.id} — Details (${req.status.toUpperCase()})`;
+            const container = document.getElementById('diffModalContent');
+
+            let metaHtml = `
+                <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;">
+                    <div><strong>Submitted Date:</strong> ${new Date(req.created_at).toLocaleString()}</div>
+                    ${req.notes ? `<div style="margin-top:4px;"><strong>Staff Note:</strong> ${req.notes}</div>` : ''}
+                    ${req.admin_notes ? `<div style="margin-top:4px;color:${req.status === 'rejected' ? '#dc2626' : '#16a34a'};"><strong>Admin Feedback:</strong> ${req.admin_notes}</div>` : ''}
+                </div>
+                <h4 style="font-size:14px;font-weight:700;margin-bottom:8px;">Proposed Changes (${(req.changes || []).length}):</h4>
+            `;
+
+            let tableHtml = `
+                <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                        <thead>
+                            <tr style="background:#f1f5f9;text-align:left;">
+                                <th style="padding:8px 10px;">Category</th>
+                                <th style="padding:8px 10px;">Item</th>
+                                <th style="padding:8px 10px;">Service</th>
+                                <th style="padding:8px 10px;text-align:right;">Original</th>
+                                <th style="padding:8px 10px;text-align:right;">Proposed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            (req.changes || []).forEach(c => {
+                const diffNum = c.diff !== undefined ? c.diff : null;
+                const sign = diffNum !== null ? (diffNum > 0 ? `+₦${diffNum.toLocaleString()}` : `-₦${Math.abs(diffNum).toLocaleString()}`) : '';
+                const color = diffNum > 0 ? '#16a34a' : (diffNum < 0 ? '#dc2626' : '#475569');
+
+                tableHtml += `
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:8px 10px;font-weight:600;">${c.genderLabel || c.gender}</td>
+                        <td style="padding:8px 10px;">${c.item}</td>
+                        <td style="padding:8px 10px;">${c.field || '—'}</td>
+                        <td style="padding:8px 10px;text-align:right;">
+                            ${c.oldVal !== null && c.oldVal !== undefined ? `<span class="diff-tag diff-old">₦${Number(c.oldVal).toLocaleString()}</span>` : '—'}
+                        </td>
+                        <td style="padding:8px 10px;text-align:right;">
+                            ${c.newVal !== null && c.newVal !== undefined ? `<span class="diff-tag diff-new">₦${Number(c.newVal).toLocaleString()}</span>` : '—'}
+                            ${sign ? `<span style="font-weight:700;color:${color};font-size:10px;margin-left:4px;">(${sign})</span>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table></div>`;
+            container.innerHTML = metaHtml + tableHtml;
+            document.getElementById('diffModal').style.display = 'flex';
+        }
+
+        function closeDiffModal() {
+            document.getElementById('diffModal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
